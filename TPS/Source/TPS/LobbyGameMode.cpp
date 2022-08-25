@@ -18,7 +18,7 @@ void ALobbyGameMode::Logout(AController* Exiting)
 	Super::Logout(Exiting);
 
 	NumberOfPlayers--;
-	if (NumberOfPlayers < 2 && GetWorldTimerManager().IsTimerActive(StartGameTimerHandle))
+	if (NumberOfPlayers < minimumPlayerNum && GetWorldTimerManager().IsTimerActive(StartGameTimerHandle))
 	{
 		GetWorldTimerManager().ClearTimer(StartGameTimerHandle);
 	}
@@ -42,7 +42,7 @@ void ALobbyGameMode::StartGame()
 
 void ALobbyGameMode::ReadyGame()
 {
-	if (NumberOfPlayers >= 2)
+	if (NumberOfPlayers >= minimumPlayerNum)
 	{
 		GetWorldTimerManager().SetTimer(StartGameTimerHandle, this, &ALobbyGameMode::StartGame, 10.f, false);
 	}

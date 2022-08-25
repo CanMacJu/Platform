@@ -33,4 +33,6 @@ private:
 	int32 NumberOfPlayers = 0;
 
 	FTimerHandle StartGameTimerHandle;
+
+	int32 minimumPlayerNum = 1;
 };
