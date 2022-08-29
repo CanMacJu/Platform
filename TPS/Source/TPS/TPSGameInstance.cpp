@@ -307,8 +307,6 @@ void UTPSGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, EN
 	if (GEngine == nullptr) return;
 
 	GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Blue, TEXT("Network Error"));
-
-	LoadMainMenu();
 }
 
 void UTPSGameInstance::CreateSession()

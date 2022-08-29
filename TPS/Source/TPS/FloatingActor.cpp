@@ -22,6 +22,12 @@ void AFloatingActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
+
 	GlobalStartLocation = GetActorLocation();
 	GlobalTargetLocation = GlobalStartLocation + TargetLocation;
 
@@ -55,23 +61,26 @@ void AFloatingActor::Tick(float DeltaTime)
 
 void AFloatingActor::TimelineUpdate(float Value)
 {
-	SetActorLocation(FMath::Lerp(GlobalStartLocation, GlobalTargetLocation, Value));
+	if (HasAuthority())
+	{
+		SetActorLocation(FMath::Lerp(GlobalStartLocation, GlobalTargetLocation, Value));
+	}
 }
 
 void AFloatingActor::TimelineFinish()
 {
-	/*if (FloatingTimeline->GetPlaybackPosition() == 2.0f)
+	if (FloatingTimeline->GetPlaybackPosition() == FloatingTimeline->GetTimelineLength())
 	{
 		FloatingTimeline->Reverse();
-		UE_LOG(LogTemp, Warning, TEXT("Finish Timeline"));
+		UE_LOG(LogTemp, Warning, TEXT("Reverse Timeline"));
 	}
 	else if (FloatingTimeline->GetPlaybackPosition() == 0.f)
 	{
 		FloatingTimeline->Play();
 		UE_LOG(LogTemp, Error, TEXT("Play Timeline"));
-	}*/
+	}
 
 	
-	FloatingTimeline->PlayFromStart();
+	//FloatingTimeline->PlayFromStart();
 }
 
