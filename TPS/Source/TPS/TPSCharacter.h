@@ -93,5 +93,11 @@ private:
 	void ActiveTPSCamera();
 
 	bool IsFPS;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<class APortal> PortalA;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<class APortal> PortalB;
 };
 

@@ -39,6 +39,15 @@ void APortal::BeginPlay()
 	
 }
 
+void APortal::LinkPortal(TWeakObjectPtr<APortal> LinkPortal)
+{
+	if (!LinkedPortal.IsValid() && LinkPortal.IsValid())
+	{
+		LinkedPortal = LinkPortal;
+		LinkPortal->LinkPortal(this);
+	}
+}
+
 // Called every frame
 void APortal::Tick(float DeltaTime)
 {

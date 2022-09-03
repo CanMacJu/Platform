@@ -22,6 +22,7 @@ void APortalWall::BeginPlay()
 {
 	Super::BeginPlay();
 	
+
 }
 
 // Called every frame

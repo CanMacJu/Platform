@@ -17,6 +17,8 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	void LinkPortal(TWeakObjectPtr<APortal> LinkPortal);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -41,6 +43,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* PortalBoderB;
 
-
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<APortal> LinkedPortal;
 
 };

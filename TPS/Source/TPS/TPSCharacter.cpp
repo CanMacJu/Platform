@@ -21,7 +21,7 @@
 ATPSCharacter::ATPSCharacter()
 {
 	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(38.f, 88.0f);
+	GetCapsuleComponent()->InitCapsuleSize(32.f, 88.0f);
 
 	// set our turn rates for input
 	BaseTurnRate = 10.f;
@@ -52,8 +52,8 @@ ATPSCharacter::ATPSCharacter()
 
 	FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
 	FPSCamera->SetupAttachment(RootComponent);
-	FPSCamera->SetRelativeLocation(FVector(25.f, 0.f, 60.f));
-	FPSCamera->SetFieldOfView(95.f);
+	FPSCamera->SetRelativeLocation(FVector(0.f, 0.f, 60.f));
+	FPSCamera->SetFieldOfView(90.f);
 	FPSCamera->bUsePawnControlRotation = true;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -107,7 +107,7 @@ void ATPSCharacter::SpawnPortalA()
 	{
 		FHitResult HitResult;
 		FVector Start = FPSCamera->GetComponentLocation();
-		FVector End = FPSCamera->GetForwardVector() * 10000.f;
+		FVector End = Start + FPSCamera->GetForwardVector() * 10000.f;
 		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
 
 		bool Result = World->LineTraceSingleByChannel(OUT HitResult,
@@ -116,15 +116,7 @@ void ATPSCharacter::SpawnPortalA()
 			ECollisionChannel::ECC_GameTraceChannel1,
 			QueryParam);
 
-		FColor Color;
-		if (Result)
-		{
-			Color = FColor::Blue;
-		}
-		else
-		{
-			Color = FColor::Red;
-		}
+		FColor Color = Result ? FColor::Green : FColor::Red;
 		DrawDebugLine(World, Start, End, Color, false, 3.f);
 
 
@@ -133,10 +125,14 @@ void ATPSCharacter::SpawnPortalA()
 
 		if (Result && HitResult.IsValidBlockingHit())
 		{
+			if (PortalA.IsValid()) PortalA->Destroy();
+
 			FTransform Transform = FTransform(HitResult.Normal.Rotation(), HitResult.Location);
 			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, Transform);
 			if (Portal)
 			{
+				PortalA = Portal;
+				Portal->LinkPortal(PortalB);
 				Portal->PortalA = true;
 				Portal->FinishSpawning(Transform);
 			}
@@ -154,7 +150,7 @@ void ATPSCharacter::SpawnPortalB()
 	{
 		FHitResult HitResult;
 		FVector Start = FPSCamera->GetComponentLocation();
-		FVector End = FPSCamera->GetForwardVector() * 10000.f;
+		FVector End = Start + FPSCamera->GetForwardVector() * 10000.f;
 		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
 
 		bool Result = World->LineTraceSingleByChannel(OUT HitResult,
@@ -163,15 +159,7 @@ void ATPSCharacter::SpawnPortalB()
 			ECollisionChannel::ECC_GameTraceChannel1,
 			QueryParam);
 
-		FColor Color;
-		if (Result)
-		{
-			Color = FColor::Green;
-		}
-		else
-		{
-			Color = FColor::Yellow;
-		}
+		FColor Color = Result ? FColor::Green : FColor::Red;
 		DrawDebugLine(World, Start, End, Color, false, 3.f);
 
 		FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
@@ -179,10 +167,14 @@ void ATPSCharacter::SpawnPortalB()
 
 		if (Result && HitResult.IsValidBlockingHit())
 		{
+			if (PortalB.IsValid()) PortalB->Destroy();
+
 			FTransform Transform = FTransform(HitResult.Normal.Rotation(), HitResult.Location);
 			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, Transform);
 			if (Portal)
 			{
+				PortalB = Portal;
+				Portal->LinkPortal(PortalA);
 				Portal->PortalA = false;
 				Portal->FinishSpawning(Transform);
 			}
@@ -197,6 +189,7 @@ void ATPSCharacter::SwitchActiveCamera()
 
 void ATPSCharacter::ActiveFPSCamera()
 {
+	GetMesh()->SetOwnerNoSee(true);
 	FPSCamera->SetActive(true);
 	FollowCamera->SetActive(false);
 	this->bUseControllerRotationYaw = true;
@@ -205,6 +198,7 @@ void ATPSCharacter::ActiveFPSCamera()
 
 void ATPSCharacter::ActiveTPSCamera()
 {
+	GetMesh()->SetOwnerNoSee(false);
 	FollowCamera->SetActive(true);
 	FPSCamera->SetActive(false);
 	this->bUseControllerRotationYaw = false;

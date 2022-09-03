@@ -13,6 +13,9 @@ class ATPSGameMode : public AGameModeBase
 
 public:
 	ATPSGameMode();
+
+private:
+
 };
 
 
