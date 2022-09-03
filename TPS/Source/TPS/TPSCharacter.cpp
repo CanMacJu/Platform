@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "TPSCharacter.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
@@ -10,6 +10,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "MenuSystem/InGameMenu.h"
+#include "Portal.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
+#include "UObject/UObjectGlobals.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -17,7 +21,7 @@
 ATPSCharacter::ATPSCharacter()
 {
 	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->InitCapsuleSize(38.f, 88.0f);
 
 	// set our turn rates for input
 	BaseTurnRate = 10.f;
@@ -46,8 +50,11 @@ ATPSCharacter::ATPSCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 
-
-
+	FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
+	FPSCamera->SetupAttachment(RootComponent);
+	FPSCamera->SetRelativeLocation(FVector(25.f, 0.f, 60.f));
+	FPSCamera->SetFieldOfView(95.f);
+	FPSCamera->bUsePawnControlRotation = true;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -56,8 +63,7 @@ void ATPSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-
+	ActiveFPSCamera();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,6 +95,120 @@ void ATPSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ATPSCharacter::OnResetVR);
 
 	// test
+}
+
+void ATPSCharacter::SpawnPortalA()
+{
+	auto World = GetWorld();
+	if (World == nullptr) return;
+
+
+	if (IsFPS)
+	{
+		FHitResult HitResult;
+		FVector Start = FPSCamera->GetComponentLocation();
+		FVector End = FPSCamera->GetForwardVector() * 10000.f;
+		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
+
+		bool Result = World->LineTraceSingleByChannel(OUT HitResult,
+			Start,
+			End,
+			ECollisionChannel::ECC_GameTraceChannel1,
+			QueryParam);
+
+		FColor Color;
+		if (Result)
+		{
+			Color = FColor::Blue;
+		}
+		else
+		{
+			Color = FColor::Red;
+		}
+		DrawDebugLine(World, Start, End, Color, false, 3.f);
+
+
+		FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
+		UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
+
+		if (Result && HitResult.IsValidBlockingHit())
+		{
+			FTransform Transform = FTransform(HitResult.Normal.Rotation(), HitResult.Location);
+			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, Transform);
+			if (Portal)
+			{
+				Portal->PortalA = true;
+				Portal->FinishSpawning(Transform);
+			}
+		}
+	}
+}
+
+void ATPSCharacter::SpawnPortalB()
+{
+	auto World = GetWorld();
+	if (World == nullptr) return;
+
+
+	if (IsFPS)
+	{
+		FHitResult HitResult;
+		FVector Start = FPSCamera->GetComponentLocation();
+		FVector End = FPSCamera->GetForwardVector() * 10000.f;
+		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
+
+		bool Result = World->LineTraceSingleByChannel(OUT HitResult,
+			Start,
+			End,
+			ECollisionChannel::ECC_GameTraceChannel1,
+			QueryParam);
+
+		FColor Color;
+		if (Result)
+		{
+			Color = FColor::Green;
+		}
+		else
+		{
+			Color = FColor::Yellow;
+		}
+		DrawDebugLine(World, Start, End, Color, false, 3.f);
+
+		FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
+		UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
+
+		if (Result && HitResult.IsValidBlockingHit())
+		{
+			FTransform Transform = FTransform(HitResult.Normal.Rotation(), HitResult.Location);
+			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, Transform);
+			if (Portal)
+			{
+				Portal->PortalA = false;
+				Portal->FinishSpawning(Transform);
+			}
+		}
+	}
+}
+
+void ATPSCharacter::SwitchActiveCamera()
+{
+	IsFPS ? ActiveTPSCamera() : ActiveFPSCamera();
+}
+
+void ATPSCharacter::ActiveFPSCamera()
+{
+	FPSCamera->SetActive(true);
+	FollowCamera->SetActive(false);
+	this->bUseControllerRotationYaw = true;
+	IsFPS = true;
+}
+
+void ATPSCharacter::ActiveTPSCamera()
+{
+	FollowCamera->SetActive(true);
+	FPSCamera->SetActive(false);
+	this->bUseControllerRotationYaw = false;
+	IsFPS = false;
 }
 
 void ATPSCharacter::OnResetVR()

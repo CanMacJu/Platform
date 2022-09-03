@@ -18,6 +18,9 @@ class ATPSCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FPSCamera;
 public:
 	ATPSCharacter();
 
@@ -75,5 +78,20 @@ public:
 
 private:
 
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void SpawnPortalA();
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void SpawnPortalB();
+
+
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void SwitchActiveCamera();
+
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void ActiveFPSCamera();
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void ActiveTPSCamera();
+
+	bool IsFPS;
 };
 
