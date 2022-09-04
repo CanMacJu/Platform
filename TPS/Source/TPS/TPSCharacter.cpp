@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "UObject/UObjectGlobals.h"
+#include "PortalWall.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -22,7 +23,8 @@ ATPSCharacter::ATPSCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(32.f, 88.0f);
-
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 	// set our turn rates for input
 	BaseTurnRate = 10.f;
 	BaseLookUpRate = 10.f;
@@ -102,7 +104,6 @@ void ATPSCharacter::SpawnPortalA()
 	auto World = GetWorld();
 	if (World == nullptr) return;
 
-
 	if (IsFPS)
 	{
 		FHitResult HitResult;
@@ -119,22 +120,25 @@ void ATPSCharacter::SpawnPortalA()
 		FColor Color = Result ? FColor::Green : FColor::Red;
 		DrawDebugLine(World, Start, End, Color, false, 3.f);
 
-
-		FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
-		UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
-
 		if (Result && HitResult.IsValidBlockingHit())
 		{
+			APortalWall* PortalWall = Cast<APortalWall>(HitResult.GetActor());
+			if (PortalWall == nullptr) return;
+
 			if (PortalA.IsValid()) PortalA->Destroy();
 
-			FTransform Transform = FTransform(HitResult.Normal.Rotation(), HitResult.Location);
-			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, Transform);
+			FTransform ClampTransform = PortalWall->ClampPortalPosition(HitResult.Location);
+
+			FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
+			UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
+
+			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, ClampTransform);
 			if (Portal)
 			{
 				PortalA = Portal;
 				Portal->LinkPortal(PortalB);
 				Portal->PortalA = true;
-				Portal->FinishSpawning(Transform);
+				Portal->FinishSpawning(ClampTransform);
 			}
 		}
 	}
@@ -145,7 +149,6 @@ void ATPSCharacter::SpawnPortalB()
 	auto World = GetWorld();
 	if (World == nullptr) return;
 
-
 	if (IsFPS)
 	{
 		FHitResult HitResult;
@@ -162,21 +165,25 @@ void ATPSCharacter::SpawnPortalB()
 		FColor Color = Result ? FColor::Green : FColor::Red;
 		DrawDebugLine(World, Start, End, Color, false, 3.f);
 
-		FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
-		UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
-
 		if (Result && HitResult.IsValidBlockingHit())
 		{
+			APortalWall* PortalWall = Cast<APortalWall>(HitResult.GetActor());
+			if (PortalWall == nullptr) return;
+
 			if (PortalB.IsValid()) PortalB->Destroy();
 
-			FTransform Transform = FTransform(HitResult.Normal.Rotation(), HitResult.Location);
-			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, Transform);
+			FTransform ClampTransform = PortalWall->ClampPortalPosition(HitResult.Location);
+
+			FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
+			UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
+
+			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, ClampTransform);
 			if (Portal)
 			{
 				PortalB = Portal;
 				Portal->LinkPortal(PortalA);
 				Portal->PortalA = false;
-				Portal->FinishSpawning(Transform);
+				Portal->FinishSpawning(ClampTransform);
 			}
 		}
 	}

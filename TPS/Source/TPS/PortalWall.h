@@ -20,6 +20,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+	FTransform ClampPortalPosition(FVector Location);
+
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

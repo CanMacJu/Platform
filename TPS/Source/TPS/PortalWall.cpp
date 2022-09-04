@@ -25,6 +25,33 @@ void APortalWall::BeginPlay()
 
 }
 
+FTransform APortalWall::ClampPortalPosition(FVector Location)
+{
+	FTransform ClampTransform;
+	FVector ClampLocation;
+	FVector LocalLocation = GetTransform().InverseTransformPositionNoScale(Location);
+
+	ClampLocation.X = 1.f;
+	ClampLocation.Y = FMath::Clamp(FMath::Abs(LocalLocation.Y), 0.f, Width / 2 - 90.f);
+	ClampLocation.Z = FMath::Clamp(FMath::Abs(LocalLocation.Z), 0.f, Height / 2 - 124.5f);
+	
+	if (LocalLocation.Y < 0)
+	{
+		ClampLocation.Y *= -1.f;
+	}
+
+	if (LocalLocation.Z < 0)
+	{
+		ClampLocation.Z *= -1.f;
+	}
+
+	ClampLocation = GetTransform().TransformPositionNoScale(ClampLocation);
+
+	ClampTransform = FTransform(GetActorRotation(), ClampLocation);
+
+	return ClampTransform;
+}
+
 // Called every frame
 void APortalWall::Tick(float DeltaTime)
 {
