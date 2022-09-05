@@ -23,11 +23,11 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	bool PortalA = true;
 
 private:
 
@@ -36,6 +36,14 @@ private:
 
 	UFUNCTION()
 	void OnPortalEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void SetPortalMaterial();
+
+public:
+
+	void ResetPortalMaterial();
+
+	bool PortalA;
 
 private:
 
@@ -46,13 +54,32 @@ private:
 	UStaticMeshComponent* PortalBody;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UMaterialInterface* PortalBoderA;
+	class UMaterialInterface* MI_PortalBoderA;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UMaterialInterface* PortalBoderB;
+	class UMaterialInterface* MI_PortalBoderB;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_PortalBodyA;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_PortalBodyB;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_PortalBodyDefault;
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<APortal> LinkedPortal;
 
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<class ACharacter> Character;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UTextureRenderTarget2D* RenderTargetA;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UTextureRenderTarget2D* RenderTargetB;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USceneCaptureComponent2D* SceneCapture;
 };

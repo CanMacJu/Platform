@@ -55,7 +55,6 @@ ATPSCharacter::ATPSCharacter()
 	FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
 	FPSCamera->SetupAttachment(RootComponent);
 	FPSCamera->SetRelativeLocation(FVector(0.f, 0.f, 60.f));
-	FPSCamera->SetFieldOfView(90.f);
 	FPSCamera->bUsePawnControlRotation = true;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -136,8 +135,8 @@ void ATPSCharacter::SpawnPortalA()
 			if (Portal)
 			{
 				PortalA = Portal;
-				Portal->LinkPortal(PortalB);
 				Portal->PortalA = true;
+				Portal->LinkPortal(PortalB);
 				Portal->FinishSpawning(ClampTransform);
 			}
 		}
@@ -181,8 +180,8 @@ void ATPSCharacter::SpawnPortalB()
 			if (Portal)
 			{
 				PortalB = Portal;
-				Portal->LinkPortal(PortalA);
 				Portal->PortalA = false;
+				Portal->LinkPortal(PortalA);
 				Portal->FinishSpawning(ClampTransform);
 			}
 		}
