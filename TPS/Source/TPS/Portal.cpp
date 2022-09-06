@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "TPSCharacter.h"
 
 // Sets default values
 APortal::APortal()
@@ -56,7 +57,7 @@ void APortal::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	Character = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	Character = Cast<ATPSCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	PortalBody->OnComponentBeginOverlap.AddDynamic(this, &APortal::OnPortalBeginOverlap);
 	PortalBody->OnComponentEndOverlap.AddDynamic(this, &APortal::OnPortalEndOverlap);
@@ -87,6 +88,11 @@ void APortal::LinkPortal(TWeakObjectPtr<APortal> LinkPortal)
 void APortal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (LinkedPortal.IsValid())
+	{
+		SetCameraPosition(DeltaTime);
+	}
 
 }
 
@@ -137,5 +143,23 @@ void APortal::ResetPortalMaterial()
 	{
 		PortalBody->SetMaterial(0, MI_PortalBodyDefault);
 	}
+}
+
+void APortal::SetCameraPosition(float DeltaTime)
+{
+	// TODO Position Fix
+	FVector Position = Character->FPSCamera->GetComponentLocation() - GetActorLocation();
+
+	FRotator Pitch = Character->FPSCamera->GetComponentRotation();
+	FRotator Yaw = Character->GetActorRotation();
+
+	FRotator Rotator = FRotator(Pitch.Pitch, Yaw.Yaw, 0.f);
+
+	LinkedPortal->SceneCapture->SetRelativeLocation(Position);
+
+
+	Rot = FMath::RInterpTo(Rot, Rotator, DeltaTime, 20.f);
+
+	LinkedPortal->SceneCapture->SetWorldRotation(Rot);
 }
 

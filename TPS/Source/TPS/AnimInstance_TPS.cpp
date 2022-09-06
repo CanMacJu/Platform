@@ -106,7 +106,7 @@ TTuple<bool, float> UAnimInstance_TPS::CapsuleDistance(FName SocketName, ACharac
 		ETraceTypeQuery::TraceTypeQuery1,
 		false,
 		IgnoreActors,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		HitResult,
 		false);
 

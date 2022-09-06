@@ -43,15 +43,22 @@ public:
 
 	void ResetPortalMaterial();
 
+	void SetCameraPosition(float DeltaTime);
+
 	bool PortalA;
 
 private:
+
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<APortal> LinkedPortal;
+
 
 	UPROPERTY(VisibleDefaultsOnly)
 	UStaticMeshComponent* PortalBorder;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	UStaticMeshComponent* PortalBody;
+
 
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_PortalBoderA;
@@ -68,11 +75,10 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_PortalBodyDefault;
 
-	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<APortal> LinkedPortal;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<class ACharacter> Character;
+	TWeakObjectPtr<class ATPSCharacter> Character;
+
 
 	UPROPERTY(EditDefaultsOnly)
 	class UTextureRenderTarget2D* RenderTargetA;
@@ -82,4 +88,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USceneCaptureComponent2D* SceneCapture;
+
+	FRotator Rot;
 };
