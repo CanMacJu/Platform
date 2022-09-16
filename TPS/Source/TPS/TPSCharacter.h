@@ -102,5 +102,18 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class APortal> PortalB;
+
+	UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* TeleportBox;
+
+public:
+
+	void SetTeleportDelay();
+	
+	void SetTeleportable();
+
+	FTimerHandle TeleportDelayTimerHandle;
+
+	bool Teleportable = true;
 };
 

@@ -15,6 +15,7 @@
 #include "DrawDebugHelpers.h"
 #include "UObject/UObjectGlobals.h"
 #include "PortalWall.h"
+#include "Components/BoxComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -26,8 +27,8 @@ ATPSCharacter::ATPSCharacter()
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 	// set our turn rates for input
-	BaseTurnRate = 10.f;
-	BaseLookUpRate = 10.f;
+	BaseTurnRate = 1.f;
+	BaseLookUpRate = 1.f;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -35,10 +36,14 @@ ATPSCharacter::ATPSCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, -1.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 0.2f;
+	GetCharacterMovement()->AirControl = 1.f;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->MaxAcceleration = 10000.f;
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->FallingLateralFriction = 1000.f;
+	GetCharacterMovement()->BrakingDecelerationFalling = 2000.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -58,6 +63,11 @@ ATPSCharacter::ATPSCharacter()
 	FPSCamera->bUsePawnControlRotation = true;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+	TeleportBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX"));
+	TeleportBox->SetBoxExtent(FVector(1.5f, 1.5f, 1.5f));
+	TeleportBox->SetCollisionProfileName("OverlapAll");
+	TeleportBox->SetupAttachment(RootComponent);
 }
 
 void ATPSCharacter::BeginPlay()
@@ -209,6 +219,19 @@ void ATPSCharacter::ActiveTPSCamera()
 	FPSCamera->SetActive(false);
 	this->bUseControllerRotationYaw = false;
 	IsFPS = false;
+}
+
+void ATPSCharacter::SetTeleportDelay()
+{
+	Teleportable = false;
+	GetWorldTimerManager().SetTimer(TeleportDelayTimerHandle, this, &ATPSCharacter::SetTeleportable, 0.15f, false);
+}
+
+void ATPSCharacter::SetTeleportable()
+{
+	UE_LOG(LogTemp, Error, TEXT("Timeline"));
+	Teleportable = true;
+	GetWorldTimerManager().ClearTimer(TeleportDelayTimerHandle);
 }
 
 void ATPSCharacter::OnResetVR()

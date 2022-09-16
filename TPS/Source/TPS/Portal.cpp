@@ -9,6 +9,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "TPSCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 APortal::APortal()
@@ -16,18 +17,21 @@ APortal::APortal()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("SCENE"));
+	RootComponent = Scene;
+
 	PortalBorder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PORTAL BORDER"));
 	PortalBorder->SetRelativeRotation(FRotator(90.f, 180.f, 0.f));
 	PortalBorder->SetCollisionProfileName(TEXT("PortalBorder"));
-	RootComponent = PortalBorder;
+	PortalBorder->SetupAttachment(RootComponent);
 
 	PortalBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PORTAL BODY"));
 	PortalBody->SetCollisionProfileName(TEXT("Portal"));
-	PortalBody->SetupAttachment(RootComponent);
+	PortalBody->SetupAttachment(PortalBorder);
 
 	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SCENE CAPTURE"));
-	SceneCapture->SetRelativeRotation(FRotator(90.f, 180.f, 0.f));
 	SceneCapture->SetupAttachment(RootComponent);
+	SceneCapture->bOverride_CustomNearClippingPlane = true;
 }
 
 void APortal::OnConstruction(const FTransform& Transform)
@@ -89,32 +93,39 @@ void APortal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (LinkedPortal.IsValid())
-	{
-		SetCameraPosition(DeltaTime);
-	}
-
+	SetCameraPosition();
 }
 
 void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Error, TEXT("OnPortalBeginOverlap"));
-
-	auto Pawn = Cast<ACharacter>(OtherActor);
+	auto Pawn = Cast<ATPSCharacter>(OtherActor);
 	if (Pawn && LinkedPortal.IsValid())
 	{
-		Pawn->GetCapsuleComponent()->SetCollisionProfileName(TEXT("PortalPawn"));
+		bool CapsuleComponent = TEXT("Pawn") == OtherComp->GetCollisionProfileName();
+		if (CapsuleComponent)
+		{
+			Pawn->GetCapsuleComponent()->SetCollisionProfileName(TEXT("PortalPawn"));
+		}
+		else if (Pawn->Teleportable)
+		{
+			bool Success = Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 9);
+			FRotator Rotator = LinkedPortal->GetActorRotation() - GetActorRotation();
+			Pawn->AddControllerYawInput((180.f + Rotator.Yaw) / 2.5f);
+			Pawn->SetTeleportDelay();
+		}
 	}
 }
 
 void APortal::OnPortalEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	UE_LOG(LogTemp, Error, TEXT("OnPortalEndOverlap"));
-
-	auto Pawn = Cast<ACharacter>(OtherActor);
+	auto Pawn = Cast<ATPSCharacter>(OtherActor);
 	if (Pawn && LinkedPortal.IsValid())
 	{
-		Pawn->GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+		bool CapsuleComponent = TEXT("PortalPawn") == OtherComp->GetCollisionProfileName();
+		if (CapsuleComponent)
+		{
+			Pawn->GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+		}
 	}
 }
 
@@ -145,21 +156,27 @@ void APortal::ResetPortalMaterial()
 	}
 }
 
-void APortal::SetCameraPosition(float DeltaTime)
+void APortal::SetCameraPosition()
 {
-	// TODO Position Fix
-	FVector Position = Character->FPSCamera->GetComponentLocation() - GetActorLocation();
+	if (LinkedPortal.IsValid())
+	{
+		FVector LocalPosition = GetTransform().InverseTransformPosition(Character->FPSCamera->GetComponentLocation());
 
-	FRotator Pitch = Character->FPSCamera->GetComponentRotation();
-	FRotator Yaw = Character->GetActorRotation();
-
-	FRotator Rotator = FRotator(Pitch.Pitch, Yaw.Yaw, 0.f);
-
-	LinkedPortal->SceneCapture->SetRelativeLocation(Position);
+		FVector Position = FVector(-LocalPosition.X, -LocalPosition.Y, LocalPosition.Z);
+		LinkedPortal->SceneCapture->SetRelativeLocation(Position);
 
 
-	Rot = FMath::RInterpTo(Rot, Rotator, DeltaTime, 20.f);
+		FRotator CameraRotator = Character->FPSCamera->GetComponentRotation();
 
-	LinkedPortal->SceneCapture->SetWorldRotation(Rot);
+		FQuat Quat = FQuat(CameraRotator);
+
+		FQuat A = GetTransform().InverseTransformRotation(Quat);
+
+		FRotator Rotator = FRotator(A.Rotator().Pitch, A.Rotator().Yaw - 180.f, 0.f);
+
+		LinkedPortal->SceneCapture->SetRelativeRotation(Rotator);
+
+		LinkedPortal->SceneCapture->CustomNearClippingPlane = FVector::Dist(GetActorLocation(), Character->FPSCamera->GetComponentLocation());
+	}
 }
 

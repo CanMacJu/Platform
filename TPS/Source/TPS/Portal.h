@@ -43,7 +43,7 @@ public:
 
 	void ResetPortalMaterial();
 
-	void SetCameraPosition(float DeltaTime);
+	void SetCameraPosition();
 
 	bool PortalA;
 
@@ -52,6 +52,8 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<APortal> LinkedPortal;
 
+	UPROPERTY()
+	USceneComponent* Scene;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	UStaticMeshComponent* PortalBorder;
@@ -88,6 +90,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USceneCaptureComponent2D* SceneCapture;
-
-	FRotator Rot;
 };
