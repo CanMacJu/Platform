@@ -229,6 +229,8 @@ void ATPSCharacter::GrabActor()
 			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
 			IsGrab = true;
+			// 테스트
+			// 테스트2
 		}
 	}
 	else
