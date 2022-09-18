@@ -16,6 +16,8 @@
 #include "UObject/UObjectGlobals.h"
 #include "PortalWall.h"
 #include "Components/BoxComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -68,6 +70,8 @@ ATPSCharacter::ATPSCharacter()
 	TeleportBox->SetBoxExtent(FVector(1.f, 1.f, 1.f));
 	TeleportBox->SetCollisionProfileName("OverlapAll");
 	TeleportBox->SetupAttachment(RootComponent);
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("Handle"));
 }
 
 void ATPSCharacter::BeginPlay()
@@ -75,7 +79,18 @@ void ATPSCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ActiveFPSCamera();
+}
 
+void ATPSCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (IsGrab)
+	{
+		GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
+	}
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -106,7 +121,6 @@ void ATPSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ATPSCharacter::OnResetVR);
 
-	// test
 }
 
 void ATPSCharacter::SpawnPortalA()
@@ -196,6 +210,31 @@ void ATPSCharacter::SpawnPortalB()
 				Portal->FinishSpawning(ClampTransform);
 			}
 		}
+	}
+}
+
+void ATPSCharacter::GrabActor()
+{
+	if (IsGrab == false)
+	{
+		FHitResult HitResult;
+		FVector Start = FPSCamera->GetComponentLocation();
+		FVector End = Start + FPSCamera->GetForwardVector() * 200.f;
+		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
+		bool Result = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_GameTraceChannel1, QueryParam);
+
+		if (Result)
+		{
+			GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
+			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
+			IsGrab = true;
+		}
+	}
+	else
+	{
+		PhysicsHandle->ReleaseComponent();
+		IsGrab = false;
 	}
 }
 
