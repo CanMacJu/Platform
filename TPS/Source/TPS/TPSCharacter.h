@@ -29,6 +29,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaTime) override;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -88,8 +90,14 @@ private:
 
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	void SwitchActiveCamera();
+	void GrabActor();
 
+	bool IsGrab;
+	FRotator GrabRotator;
+	FVector GrabLocation;
+
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void SwitchActiveCamera();
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void ActiveFPSCamera();
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
@@ -106,14 +114,21 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* TeleportBox;
 
+	UPROPERTY()
+	class UPhysicsHandleComponent* PhysicsHandle;
+
+	
 public:
 
-	void SetTeleportDelay();
+	/*void SetTeleportDelay();
 	
 	void SetTeleportable();
 
 	FTimerHandle TeleportDelayTimerHandle;
 
-	bool Teleportable = true;
+	bool Teleportable = true;*/
+
+	float DirectionForward;
+	float DirectionRight;
 };
 

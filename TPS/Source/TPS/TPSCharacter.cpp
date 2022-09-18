@@ -16,6 +16,8 @@
 #include "UObject/UObjectGlobals.h"
 #include "PortalWall.h"
 #include "Components/BoxComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -32,7 +34,7 @@ ATPSCharacter::ATPSCharacter()
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
@@ -65,9 +67,11 @@ ATPSCharacter::ATPSCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
 	TeleportBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX"));
-	TeleportBox->SetBoxExtent(FVector(1.5f, 1.5f, 1.5f));
+	TeleportBox->SetBoxExtent(FVector(1.f, 1.f, 1.f));
 	TeleportBox->SetCollisionProfileName("OverlapAll");
 	TeleportBox->SetupAttachment(RootComponent);
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("Handle"));
 }
 
 void ATPSCharacter::BeginPlay()
@@ -75,6 +79,18 @@ void ATPSCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ActiveFPSCamera();
+}
+
+void ATPSCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (IsGrab)
+	{
+		GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
+	}
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,7 +121,6 @@ void ATPSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ATPSCharacter::OnResetVR);
 
-	// test
 }
 
 void ATPSCharacter::SpawnPortalA()
@@ -198,6 +213,31 @@ void ATPSCharacter::SpawnPortalB()
 	}
 }
 
+void ATPSCharacter::GrabActor()
+{
+	if (IsGrab == false)
+	{
+		FHitResult HitResult;
+		FVector Start = FPSCamera->GetComponentLocation();
+		FVector End = Start + FPSCamera->GetForwardVector() * 200.f;
+		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
+		bool Result = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_GameTraceChannel1, QueryParam);
+
+		if (Result)
+		{
+			GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
+			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
+			IsGrab = true;
+		}
+	}
+	else
+	{
+		PhysicsHandle->ReleaseComponent();
+		IsGrab = false;
+	}
+}
+
 void ATPSCharacter::SwitchActiveCamera()
 {
 	IsFPS ? ActiveTPSCamera() : ActiveFPSCamera();
@@ -221,18 +261,18 @@ void ATPSCharacter::ActiveTPSCamera()
 	IsFPS = false;
 }
 
-void ATPSCharacter::SetTeleportDelay()
-{
-	Teleportable = false;
-	GetWorldTimerManager().SetTimer(TeleportDelayTimerHandle, this, &ATPSCharacter::SetTeleportable, 0.15f, false);
-}
-
-void ATPSCharacter::SetTeleportable()
-{
-	UE_LOG(LogTemp, Error, TEXT("Timeline"));
-	Teleportable = true;
-	GetWorldTimerManager().ClearTimer(TeleportDelayTimerHandle);
-}
+//void ATPSCharacter::SetTeleportDelay()
+//{
+//	Teleportable = false;
+//	GetWorldTimerManager().SetTimer(TeleportDelayTimerHandle, this, &ATPSCharacter::SetTeleportable, 0.1f, false);
+//}
+//
+//void ATPSCharacter::SetTeleportable()
+//{
+//	UE_LOG(LogTemp, Error, TEXT("Timeline"));
+//	Teleportable = true;
+//	GetWorldTimerManager().ClearTimer(TeleportDelayTimerHandle);
+//}
 
 void ATPSCharacter::OnResetVR()
 {
@@ -279,6 +319,8 @@ void ATPSCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
+
+	DirectionForward = FMath::Clamp(Value, -1.f, 1.f);
 }
 
 void ATPSCharacter::MoveRight(float Value)
@@ -294,4 +336,6 @@ void ATPSCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+
+	DirectionRight = FMath::Clamp(Value, -1.f, 1.f);
 }

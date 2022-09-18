@@ -90,4 +90,5 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USceneCaptureComponent2D* SceneCapture;
+
 };
