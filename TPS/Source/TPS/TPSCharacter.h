@@ -108,12 +108,15 @@ private:
 
 public:
 
-	void SetTeleportDelay();
+	/*void SetTeleportDelay();
 	
 	void SetTeleportable();
 
 	FTimerHandle TeleportDelayTimerHandle;
 
-	bool Teleportable = true;
+	bool Teleportable = true;*/
+
+	float DirectionForward;
+	float DirectionRight;
 };
 

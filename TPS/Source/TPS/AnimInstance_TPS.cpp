@@ -19,7 +19,7 @@ void UAnimInstance_TPS::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 
-	Character = Cast<ACharacter>(TryGetPawnOwner());
+	Character = Cast<ATPSCharacter>(TryGetPawnOwner());
 }
 
 void UAnimInstance_TPS::NativeUpdateAnimation(float DeltaSeconds)
@@ -29,6 +29,7 @@ void UAnimInstance_TPS::NativeUpdateAnimation(float DeltaSeconds)
 	if (Character)
 	{
 		Velocity = Character->GetVelocity().Size();
+		Direction = FVector2D(Character->DirectionForward, Character->DirectionRight);
 		if (Velocity > 0)
 		{
 			IsMove = true;

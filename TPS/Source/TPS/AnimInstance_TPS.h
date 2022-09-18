@@ -37,8 +37,14 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "state", meta = (AllowPrivateAccess = "true"))
 	float Velocity;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "state", meta = (AllowPrivateAccess = "true"))
+	FVector2D Direction;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "state", meta = (AllowPrivateAccess = "true"))
+	bool IsMove;
+
 	UPROPERTY()
-	class ACharacter* Character;
+	class ATPSCharacter* Character;
 
 	UPROPERTY()
 	TArray<AActor*> IgnoreActors;
@@ -61,5 +67,4 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "IK", meta = (AllowPrivateAccess = "true"))
 		float LIK;
 
-	bool IsMove;
 };

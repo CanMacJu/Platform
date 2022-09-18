@@ -32,7 +32,7 @@ ATPSCharacter::ATPSCharacter()
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
@@ -65,7 +65,7 @@ ATPSCharacter::ATPSCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
 	TeleportBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX"));
-	TeleportBox->SetBoxExtent(FVector(1.5f, 1.5f, 1.5f));
+	TeleportBox->SetBoxExtent(FVector(1.f, 1.f, 1.f));
 	TeleportBox->SetCollisionProfileName("OverlapAll");
 	TeleportBox->SetupAttachment(RootComponent);
 }
@@ -75,6 +75,7 @@ void ATPSCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ActiveFPSCamera();
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -221,18 +222,18 @@ void ATPSCharacter::ActiveTPSCamera()
 	IsFPS = false;
 }
 
-void ATPSCharacter::SetTeleportDelay()
-{
-	Teleportable = false;
-	GetWorldTimerManager().SetTimer(TeleportDelayTimerHandle, this, &ATPSCharacter::SetTeleportable, 0.15f, false);
-}
-
-void ATPSCharacter::SetTeleportable()
-{
-	UE_LOG(LogTemp, Error, TEXT("Timeline"));
-	Teleportable = true;
-	GetWorldTimerManager().ClearTimer(TeleportDelayTimerHandle);
-}
+//void ATPSCharacter::SetTeleportDelay()
+//{
+//	Teleportable = false;
+//	GetWorldTimerManager().SetTimer(TeleportDelayTimerHandle, this, &ATPSCharacter::SetTeleportable, 0.1f, false);
+//}
+//
+//void ATPSCharacter::SetTeleportable()
+//{
+//	UE_LOG(LogTemp, Error, TEXT("Timeline"));
+//	Teleportable = true;
+//	GetWorldTimerManager().ClearTimer(TeleportDelayTimerHandle);
+//}
 
 void ATPSCharacter::OnResetVR()
 {
@@ -279,6 +280,8 @@ void ATPSCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
+
+	DirectionForward = FMath::Clamp(Value, -1.f, 1.f);
 }
 
 void ATPSCharacter::MoveRight(float Value)
@@ -294,4 +297,6 @@ void ATPSCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+
+	DirectionRight = FMath::Clamp(Value, -1.f, 1.f);
 }

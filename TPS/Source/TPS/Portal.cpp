@@ -94,6 +94,24 @@ void APortal::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	SetCameraPosition();
+
+	FVector2D CurrentViewportSize;
+	GetWorld()->GetGameViewport()->GetViewportSize(CurrentViewportSize);
+
+	if (PortalA)
+	{
+		if (RenderTargetB)
+		{
+			RenderTargetB->ResizeTarget(CurrentViewportSize.X, CurrentViewportSize.Y);
+		}
+	}
+	else
+	{
+		if (RenderTargetA)
+		{
+			RenderTargetA->ResizeTarget(CurrentViewportSize.X, CurrentViewportSize.Y);
+		}
+	}
 }
 
 void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -106,12 +124,21 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		{
 			Pawn->GetCapsuleComponent()->SetCollisionProfileName(TEXT("PortalPawn"));
 		}
-		else if (Pawn->Teleportable)
+		else
 		{
-			bool Success = Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 9);
 			FRotator Rotator = LinkedPortal->GetActorRotation() - GetActorRotation();
-			Pawn->AddControllerYawInput((180.f + Rotator.Yaw) / 2.5f);
-			Pawn->SetTeleportDelay();
+			Pawn->AddControllerYawInput((180.f + Rotator.Yaw) * 0.4f);
+
+			FRotator VelocityRotator = FRotator(0, Rotator.Yaw + 180.f, 0);
+			FVector OriginVelocity = Pawn->GetMovementComponent()->Velocity;
+			Pawn->GetMovementComponent()->Velocity = VelocityRotator.RotateVector(OriginVelocity);
+
+
+			float Ydiff = GetTransform().InverseTransformPositionNoScale(Pawn->GetActorLocation()).Y;
+			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 8 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
+
+			//Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 8);
+			//Pawn->SetTeleportDelay();
 		}
 	}
 }
