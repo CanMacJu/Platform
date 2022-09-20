@@ -116,8 +116,11 @@ void APortal::Tick(float DeltaTime)
 
 void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (LinkedPortal.IsValid() == false)
+		return;
+
 	auto Pawn = Cast<ATPSCharacter>(OtherActor);
-	if (Pawn && LinkedPortal.IsValid())
+	if (Pawn)
 	{
 		bool CapsuleComponent = TEXT("Pawn") == OtherComp->GetCollisionProfileName();
 		if (CapsuleComponent)
@@ -136,9 +139,6 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
 			float Ydiff = GetTransform().InverseTransformPositionNoScale(Pawn->GetActorLocation()).Y;
 			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 8 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
-
-			//Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 8);
-			//Pawn->SetTeleportDelay();
 		}
 	}
 }

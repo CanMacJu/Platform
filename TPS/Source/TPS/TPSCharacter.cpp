@@ -88,6 +88,7 @@ void ATPSCharacter::Tick(float DeltaTime)
 	if (IsGrab)
 	{
 		GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+		GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
 	}
 	
@@ -221,20 +222,23 @@ void ATPSCharacter::GrabActor()
 		FVector Start = FPSCamera->GetComponentLocation();
 		FVector End = Start + FPSCamera->GetForwardVector() * 200.f;
 		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
-		bool Result = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_GameTraceChannel1, QueryParam);
+		bool Result = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_GameTraceChannel6, QueryParam);
 
 		if (Result)
 		{
 			GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
+			GrabedComponent = HitResult.GetComponent();
+			GrabedComponent->SetCollisionProfileName(TEXT("GrabedActor"));
 			IsGrab = true;
-			// 테스트11
 		}
 	}
 	else
 	{
 		PhysicsHandle->ReleaseComponent();
+		GrabedComponent->SetCollisionProfileName(TEXT("PhysicsActor"));
+		GrabedComponent.Reset();
 		IsGrab = false;
 	}
 }

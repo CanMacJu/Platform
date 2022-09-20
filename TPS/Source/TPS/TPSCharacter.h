@@ -92,7 +92,7 @@ private:
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void GrabActor();
 
-	bool IsGrab;
+	bool IsGrab = false;
 	FRotator GrabRotator;
 	FVector GrabLocation;
 
@@ -130,5 +130,8 @@ public:
 
 	float DirectionForward;
 	float DirectionRight;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<class UPrimitiveComponent> GrabedComponent;
 };
 
