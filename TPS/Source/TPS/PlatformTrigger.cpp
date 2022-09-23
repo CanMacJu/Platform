@@ -65,7 +65,7 @@ void APlatformTrigger::OnBeginOverlapTrigger(UPrimitiveComponent* OverlappedComp
 void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OverlapedActorNum > 0)
-	{
+	{ 
 		OverlapedActorNum--;
 	}
 

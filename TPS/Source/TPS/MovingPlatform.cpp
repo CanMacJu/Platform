@@ -18,7 +18,7 @@ AMovingPlatform::AMovingPlatform()
 	Speed = 100.f;
 }
 
-void AMovingPlatform::BeginPlay()
+void AMovingPlatform::BeginPlay() 
 {
 	Super::BeginPlay();
 

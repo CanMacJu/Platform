@@ -230,7 +230,7 @@ void ATPSCharacter::GrabActor()
 			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
 			GrabedComponent = HitResult.GetComponent();
-			GrabedComponent->SetCollisionProfileName(TEXT("GrabedActor"));
+
 			IsGrab = true;
 		}
 	}

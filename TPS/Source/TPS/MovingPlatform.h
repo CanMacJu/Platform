@@ -25,8 +25,8 @@ protected:
 
 public:
 
-	void AddActiveTrigger();
-	void RemoveActiveTrigger();
+	virtual void AddActiveTrigger();
+	virtual void RemoveActiveTrigger();
 
 private:
 
