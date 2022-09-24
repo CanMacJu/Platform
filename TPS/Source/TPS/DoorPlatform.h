@@ -34,7 +34,7 @@ private:
 	class UTimelineComponent* Timeline;
 
 	UPROPERTY(EditAnywhere)
-	class UCurveFloat* CurveFloat;
+	class UCurveFloat* FloatCurve;
 
 	UPROPERTY(EditAnywhere, meta = (MakeEditWidget = "true"))
 	FVector TargetLocation;

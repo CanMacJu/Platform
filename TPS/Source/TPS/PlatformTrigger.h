@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/TimelineComponent.h"
+
 #include "PlatformTrigger.generated.h"
 
 UCLASS()
@@ -14,9 +16,6 @@ class TPS_API APlatformTrigger : public AActor
 public:	
 	// Sets default values for this actor's properties
 	APlatformTrigger();
-
-
-
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,6 +29,13 @@ protected:
 	UFUNCTION()
 	void OnEndOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION()
+	void TimelineUpdate(float Value);
+
+	UFUNCTION()
+	void TimelineFinish();
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -37,7 +43,15 @@ public:
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* Mesh;
+	UStaticMeshComponent* Border;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* Switch;
+
+	float SwitchHeight;
+
+	FVector StartSwitchLocation;
+	FVector FinishSwitchLocation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Material")
 	UMaterialInterface* M_TriggerOn;
@@ -48,9 +62,21 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* Trigger;
 
-	UPROPERTY(EditAnywhere, Category = "platforms")
-	TArray<class AMovingPlatform*> PlaformsToTrigger;
+	UPROPERTY(EditAnywhere)
+	TArray<class ABasicPlatform*> PlaformsConnectedToTrigger;
 
 	UPROPERTY(VisibleAnywhere)
 	int32 OverlapedActorNum;
+
+
+
+	UPROPERTY(VisibleAnywhere)
+	class UTimelineComponent* SwitchTimeline;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UCurveFloat* FloatCurve;
+
+	FOnTimelineFloat UpdateFunction;
+	FOnTimelineEvent FinishFunction;
+
 };

@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/StaticMeshActor.h"
+#include "BasicPlatform.h"
 #include "MovingPlatform.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class TPS_API AMovingPlatform : public AStaticMeshActor
+class TPS_API AMovingPlatform : public ABasicPlatform
 {
 	GENERATED_BODY()
 	
@@ -25,13 +25,13 @@ protected:
 
 public:
 
-	virtual void AddActiveTrigger();
-	virtual void RemoveActiveTrigger();
+	virtual void AddActiveTrigger() override;
+	virtual void RemoveActiveTrigger() override;
 
 private:
 
-	UPROPERTY(EditAnywhere)
-		int32 ActiveTriggers = 1;
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed", meta = (AllowPrivateAccess = "true"))
 	float Speed;

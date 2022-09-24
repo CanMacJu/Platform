@@ -67,7 +67,7 @@ ATPSCharacter::ATPSCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
 	TeleportBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX"));
-	TeleportBox->SetBoxExtent(FVector(1.f, 1.f, 1.f));
+	TeleportBox->SetBoxExtent(FVector(1.5f, 1.5f, 60.f));
 	TeleportBox->SetCollisionProfileName("OverlapAll");
 	TeleportBox->SetupAttachment(RootComponent);
 
@@ -228,8 +228,8 @@ void ATPSCharacter::GrabActor()
 		{
 			GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
-			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
 			GrabedComponent = HitResult.GetComponent();
+			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
 
 			IsGrab = true;
 		}

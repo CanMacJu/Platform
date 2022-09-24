@@ -4,6 +4,7 @@
 #include "PlatformTrigger.h"
 #include "Components/BoxComponent.h"
 #include "MovingPlatform.h"
+#include "Components/TimelineComponent.h"
 
 // Sets default values
 APlatformTrigger::APlatformTrigger()
@@ -15,15 +16,23 @@ APlatformTrigger::APlatformTrigger()
 	Trigger->SetBoxExtent(FVector(50.f, 50.f, 15.f));
 	RootComponent = Trigger;
 
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
-	Mesh->SetupAttachment(RootComponent);
+	Switch = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
+	Switch->SetupAttachment(RootComponent);
 
+	Border = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BORDER"));
+	Border->SetupAttachment(RootComponent);
+
+	SwitchTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("TIMELINE"));
 }
 
 // Called when the game starts or when spawned
 void APlatformTrigger::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SwitchHeight = 10.f;
+	StartSwitchLocation = Switch->GetRelativeLocation();
+	FinishSwitchLocation = StartSwitchLocation - FVector(0.f, 0.f, SwitchHeight * 0.8f);
 
 }
 
@@ -34,6 +43,16 @@ void APlatformTrigger::PostInitializeComponents()
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &APlatformTrigger::OnBeginOverlapTrigger);
 	Trigger->OnComponentEndOverlap.AddDynamic(this, &APlatformTrigger::OnEndOverlapTrigger);
 
+	UpdateFunction.BindUFunction(this, FName("TimelineUpdate"));
+	FinishFunction.BindUFunction(this, FName("TimelineFinish"));
+
+	if (SwitchTimeline && FloatCurve)
+	{
+		SwitchTimeline->AddInterpFloat(FloatCurve, UpdateFunction);
+		SwitchTimeline->SetTimelineFinishedFunc(FinishFunction);
+		SwitchTimeline->SetLooping(false);
+		SwitchTimeline->SetPlayRate(3.f);
+	}
 }
 
 void APlatformTrigger::OnConstruction(const FTransform& Transform)
@@ -42,7 +61,7 @@ void APlatformTrigger::OnConstruction(const FTransform& Transform)
 
 	if (M_TriggerOff)
 	{
-		Mesh->SetMaterial(0, M_TriggerOff);
+		Switch->SetMaterial(0, M_TriggerOff);
 	}
 }
 
@@ -50,16 +69,22 @@ void APlatformTrigger::OnBeginOverlapTrigger(UPrimitiveComponent* OverlappedComp
 {
 	OverlapedActorNum++;
 
-	if (M_TriggerOn && OverlapedActorNum > 0)
+	if (M_TriggerOn && OverlapedActorNum > 0 && SwitchTimeline)
 	{
-		Mesh->SetMaterial(0, M_TriggerOn);
+		Switch->SetMaterial(0, M_TriggerOn);
+		SwitchTimeline->Play();
 	}
 
-	for (auto Platform : PlaformsToTrigger)
+	for (auto Platform : PlaformsConnectedToTrigger)
 	{
 		Platform->AddActiveTrigger();
 	}
 
+	FString s1 = StartSwitchLocation.ToString();
+	UE_LOG(LogTemp, Error, TEXT("%s"), *s1);
+
+	FString s2 = FinishSwitchLocation.ToString();
+	UE_LOG(LogTemp, Error, TEXT("%s"), *s2);
 }
 
 void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -69,15 +94,27 @@ void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedCompon
 		OverlapedActorNum--;
 	}
 
-	if (M_TriggerOff && OverlapedActorNum == 0)
+	if (M_TriggerOff && OverlapedActorNum == 0 && SwitchTimeline)
 	{
-		Mesh->SetMaterial(0, M_TriggerOff);
+		Switch->SetMaterial(0, M_TriggerOff);
+		SwitchTimeline->Reverse();
 	}
 
-	for (auto Platform : PlaformsToTrigger)
+	for (auto Platform : PlaformsConnectedToTrigger)
 	{
 		Platform->RemoveActiveTrigger();
 	}
+}
+
+void APlatformTrigger::TimelineUpdate(float Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Update Timeline"));
+	Switch->SetRelativeLocation(FMath::Lerp(StartSwitchLocation, FinishSwitchLocation, Value));
+}
+
+void APlatformTrigger::TimelineFinish()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Finish Timeline"));
 }
 
 

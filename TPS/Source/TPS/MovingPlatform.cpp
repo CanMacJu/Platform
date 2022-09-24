@@ -7,13 +7,14 @@ AMovingPlatform::AMovingPlatform()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_CUBE(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube_Chamfer.1M_Cube_Chamfer'"));
 	if (SM_CUBE.Succeeded())
 	{
-		GetStaticMeshComponent()->SetStaticMesh(SM_CUBE.Object);
+		Mesh->SetStaticMesh(SM_CUBE.Object);
 	}
 
-	SetMobility(EComponentMobility::Movable);
+	//SetMobility(EComponentMobility::Movable);
 
 	Speed = 100.f;
 }
@@ -55,13 +56,12 @@ void AMovingPlatform::Tick(float DeltaTime)
 
 void AMovingPlatform::AddActiveTrigger()
 {
-	ActiveTriggers++;
+	Super::AddActiveTrigger();
+
 }
 
 void AMovingPlatform::RemoveActiveTrigger()
 {
-	if (ActiveTriggers > 0)
-	{
-		ActiveTriggers--;
-	}
+	Super::RemoveActiveTrigger();
+
 }

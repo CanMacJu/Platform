@@ -17,12 +17,10 @@ void ADoorPlatform::AddActiveTrigger()
 {
 	Super::AddActiveTrigger();
 
-	UE_LOG(LogTemp, Error, TEXT("ADoorPlatform::AddActiveTrigger"));
 }
 
 void ADoorPlatform::RemoveActiveTrigger()
 {
 	Super::RemoveActiveTrigger();
 
-	UE_LOG(LogTemp, Error, TEXT("ADoorPlatform::RemoveActiveTrigger"));
 }

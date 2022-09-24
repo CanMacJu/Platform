@@ -28,7 +28,6 @@ void ABasicPlatform::Tick(float DeltaTime)
 void ABasicPlatform::AddActiveTrigger()
 {
 	ActiveTriggers++;
-	UE_LOG(LogTemp, Error, TEXT("ABasicPlatform::AddActiveTrigger"));
 }
 
 void ABasicPlatform::RemoveActiveTrigger()
@@ -36,6 +35,5 @@ void ABasicPlatform::RemoveActiveTrigger()
 	if (ActiveTriggers > 0)
 	{
 		ActiveTriggers--;
-		UE_LOG(LogTemp, Error, TEXT("ABasicPlatform::RemoveActiveTrigger"));
 	}
 }
