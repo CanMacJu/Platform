@@ -79,12 +79,6 @@ void APlatformTrigger::OnBeginOverlapTrigger(UPrimitiveComponent* OverlappedComp
 	{
 		Platform->AddActiveTrigger();
 	}
-
-	FString s1 = StartSwitchLocation.ToString();
-	UE_LOG(LogTemp, Error, TEXT("%s"), *s1);
-
-	FString s2 = FinishSwitchLocation.ToString();
-	UE_LOG(LogTemp, Error, TEXT("%s"), *s2);
 }
 
 void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -108,7 +102,6 @@ void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedCompon
 
 void APlatformTrigger::TimelineUpdate(float Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Update Timeline"));
 	Switch->SetRelativeLocation(FMath::Lerp(StartSwitchLocation, FinishSwitchLocation, Value));
 }
 

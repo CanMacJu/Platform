@@ -90,11 +90,18 @@ private:
 
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	void GrabActor();
+	void Laser(FVector Start, FVector Direction, int32 ReflectionCount);
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_Mirror;
 
+
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void GrabActor();
 	bool IsGrab = false;
 	FRotator GrabRotator;
 	FVector GrabLocation;
+	
+
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void SwitchActiveCamera();

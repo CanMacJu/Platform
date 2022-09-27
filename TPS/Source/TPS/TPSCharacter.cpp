@@ -214,6 +214,37 @@ void ATPSCharacter::SpawnPortalB()
 	}
 }
 
+void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCount)
+{
+	if (MI_Mirror == nullptr) return;
+
+	auto World = GetWorld();
+	if (World == nullptr) return;
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, true, this);
+	bool Result = World->LineTraceSingleByChannel(HitResult, Start, Start + Direction, ECollisionChannel::ECC_GameTraceChannel7, QueryParam);
+
+	FColor Color = Result ? FColor::Green : FColor::Red;
+	DrawDebugLine(World, Start, Start + Direction, Color);
+	
+	if (Result)
+	{
+		if (ReflectionCount == 0) return;
+
+		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
+		{
+			FVector ImpactNormal = HitResult.ImpactNormal;
+
+			Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
+			Start = HitResult.ImpactPoint;
+
+			ReflectionCount--;
+			Laser(Start, Direction, ReflectionCount);
+		}
+	}
+}
+
 void ATPSCharacter::GrabActor()
 {
 	if (IsGrab == false)
@@ -229,6 +260,7 @@ void ATPSCharacter::GrabActor()
 			GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 			GrabedComponent = HitResult.GetComponent();
+			GrabedComponent->SetCollisionProfileName("GrabedActor");
 			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
 
 			IsGrab = true;
