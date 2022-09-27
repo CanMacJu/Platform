@@ -17,6 +17,8 @@
 #include "PortalWall.h"
 #include "Components/BoxComponent.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "Components/ArrowComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,7 +93,6 @@ void ATPSCharacter::Tick(float DeltaTime)
 		GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
 	}
-	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -230,6 +231,21 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCoun
 	
 	if (Result)
 	{
+		auto Portal = Cast<APortal>(HitResult.GetActor());
+		if (Portal && Portal->LinkedPortal.IsValid())
+		{
+			FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
+			Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
+
+			FRotator PortalRotator = Portal->GetActorRotation();
+			FRotator LinkedPortalRotator = Portal->LinkedPortal->GetActorRotation();
+			FRotator DirectionRotator = LinkedPortalRotator - PortalRotator + FRotator(0.f, 180.f, 0.f);
+			Direction = DirectionRotator.RotateVector(Direction);
+
+			Laser(Start, Direction, ReflectionCount);
+			return;
+		}
+
 		if (ReflectionCount == 0) return;
 
 		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)

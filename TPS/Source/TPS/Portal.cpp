@@ -10,6 +10,7 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "TPSCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/ArrowComponent.h"
 
 // Sets default values
 APortal::APortal()
@@ -32,6 +33,10 @@ APortal::APortal()
 	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SCENE CAPTURE"));
 	SceneCapture->SetupAttachment(RootComponent);
 	SceneCapture->bOverride_CustomNearClippingPlane = true;
+
+	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ARROW"));
+	Arrow->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+	Arrow->SetupAttachment(RootComponent);
 }
 
 void APortal::OnConstruction(const FTransform& Transform)

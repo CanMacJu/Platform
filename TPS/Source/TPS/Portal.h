@@ -49,9 +49,6 @@ public:
 
 private:
 
-	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<APortal> LinkedPortal;
-
 	UPROPERTY()
 	USceneComponent* Scene;
 
@@ -90,5 +87,13 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USceneCaptureComponent2D* SceneCapture;
+
+public:
+
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<APortal> LinkedPortal;
+
+	UPROPERTY(VisibleAnywhere)
+	class UArrowComponent* Arrow;
 
 };
