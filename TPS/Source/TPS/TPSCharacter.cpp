@@ -20,6 +20,8 @@
 #include "Components/ArrowComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -74,6 +76,9 @@ ATPSCharacter::ATPSCharacter()
 	TeleportBox->SetupAttachment(RootComponent);
 
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("Handle"));
+
+	// Laser
+	//LaserParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle"));
 }
 
 void ATPSCharacter::BeginPlay()
@@ -93,6 +98,14 @@ void ATPSCharacter::Tick(float DeltaTime)
 		GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
 	}
+
+	//// Laser
+	//ResetLaser();
+
+	//FVector Start = FPSCamera->GetComponentLocation();
+	//FVector Direction = FPSCamera->GetForwardVector();
+	//Laser(Start, Direction * 10000, 5);
+	//DrawLaser();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -218,6 +231,8 @@ void ATPSCharacter::SpawnPortalB()
 void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCount)
 {
 	if (MI_Mirror == nullptr) return;
+	
+	if (P_Laser == nullptr) return;
 
 	auto World = GetWorld();
 	if (World == nullptr) return;
@@ -231,6 +246,10 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCoun
 	
 	if (Result)
 	{
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
+		SourcePoints.Add(Start);
+		EndPoints.Add(HitResult.ImpactPoint);
+
 		auto Portal = Cast<APortal>(HitResult.GetActor());
 		if (Portal && Portal->LinkedPortal.IsValid())
 		{
@@ -252,13 +271,41 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCoun
 		{
 			FVector ImpactNormal = HitResult.ImpactNormal;
 
-			Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
 			Start = HitResult.ImpactPoint;
+			Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
 
 			ReflectionCount--;
 			Laser(Start, Direction, ReflectionCount);
 		}
 	}
+	else
+	{
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
+		SourcePoints.Add(Start);
+		EndPoints.Add(Start + Direction);
+	}
+}
+
+void ATPSCharacter::DrawLaser()
+{
+	if ((LaserParticles.Num() == SourcePoints.Num() && SourcePoints.Num() == EndPoints.Num()) == false) return;
+
+	for (int32 i = 0; i < LaserParticles.Num(); ++i)
+	{
+		LaserParticles[i]->SetBeamSourcePoint(0, SourcePoints[i], 0);
+		LaserParticles[i]->SetBeamEndPoint(0, EndPoints[i]);
+	}
+}
+
+void ATPSCharacter::ResetLaser()
+{
+	for (auto LaserParticle : LaserParticles)
+	{
+		LaserParticle->DestroyComponent();
+	}
+	LaserParticles.Empty();
+	SourcePoints.Empty();
+	EndPoints.Empty();
 }
 
 void ATPSCharacter::GrabActor()

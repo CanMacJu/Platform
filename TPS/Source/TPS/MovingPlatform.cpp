@@ -29,7 +29,7 @@ void AMovingPlatform::BeginPlay()
 		SetReplicateMovement(true);
 	}
 
-	GlobalTargetLocation = GetTransform().TransformPosition(TargetLocation);
+	GlobalTargetLocation = GetTransform().TransformPositionNoScale(TargetLocation);
 	GlobalStartLocation = GetActorLocation();
 }
 

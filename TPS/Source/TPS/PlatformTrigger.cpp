@@ -119,3 +119,31 @@ void APlatformTrigger::Tick(float DeltaTime)
 
 }
 
+void APlatformTrigger::LaserTriggerOn()
+{
+	if (M_TriggerOn && SwitchTimeline)
+	{
+		Switch->SetMaterial(0, M_TriggerOn);
+		SwitchTimeline->Play();
+	}
+
+	for (auto Platform : PlaformsConnectedToTrigger)
+	{
+		Platform->AddActiveTrigger();
+	}
+}
+
+void APlatformTrigger::LaserTriggerOff()
+{
+	if (M_TriggerOff && SwitchTimeline)
+	{
+		Switch->SetMaterial(0, M_TriggerOff);
+		SwitchTimeline->Reverse();
+	}
+
+	for (auto Platform : PlaformsConnectedToTrigger)
+	{
+		Platform->RemoveActiveTrigger();
+	}
+}
+

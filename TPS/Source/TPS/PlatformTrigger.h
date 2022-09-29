@@ -79,4 +79,12 @@ private:
 	FOnTimelineFloat UpdateFunction;
 	FOnTimelineEvent FinishFunction;
 
+public:
+
+	void LaserTriggerOn();
+	void LaserTriggerOff();
+
+	UPROPERTY(EditDefaultsOnly)
+	bool IsLaserTrigger;
+
 };

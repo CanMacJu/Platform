@@ -88,28 +88,36 @@ private:
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void SpawnPortalB();
 
-
+	// Laser
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void Laser(FVector Start, FVector Direction, int32 ReflectionCount);
+
+	TArray<class UParticleSystemComponent*> LaserParticles;
+	TArray<FVector>SourcePoints;
+	TArray<FVector>EndPoints;
+	void DrawLaser();
+	void ResetLaser();
+
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_Mirror;
+	UPROPERTY(EditDefaultsOnly)
+	class UParticleSystem* P_Laser;
+	
 
-
+	// GrabActor
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void GrabActor();
 	bool IsGrab = false;
 	FRotator GrabRotator;
 	FVector GrabLocation;
 	
-
-
+	// Camera (ÇÏ³ª¸¸ ¾¸)
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void SwitchActiveCamera();
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void ActiveFPSCamera();
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void ActiveTPSCamera();
-
 	bool IsFPS;
 
 	UPROPERTY(VisibleInstanceOnly)

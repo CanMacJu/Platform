@@ -19,6 +19,8 @@ public:
 
 	ADoorPlatform();
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 public:
 
 	virtual void AddActiveTrigger() override;
@@ -28,21 +30,21 @@ public:
 private:
 
 	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* Mesh;
+	UStaticMeshComponent* DoorFrame;
 
-	UPROPERTY()
-	class UTimelineComponent* Timeline;
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* Door;
 
-	UPROPERTY(EditAnywhere)
-	class UCurveFloat* FloatCurve;
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_DoorFrameClose;
 
-	UPROPERTY(EditAnywhere, meta = (MakeEditWidget = "true"))
-	FVector TargetLocation;
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_DoorFrameOpen;
 
-	FVector GlobalStartLocation;
-	FVector GlobalTargetLocation;
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_DoorClose;
 
-	FOnTimelineFloat UpdateFunction;
-	FOnTimelineEvent FinishFunction;
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_DoorOpen;
 
 };
