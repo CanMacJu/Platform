@@ -22,6 +22,7 @@
 
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PlatformTrigger.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -99,13 +100,13 @@ void ATPSCharacter::Tick(float DeltaTime)
 		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
 	}
 
-	//// Laser
-	//ResetLaser();
+	// Laser
+	ResetLaser();
 
-	//FVector Start = FPSCamera->GetComponentLocation();
-	//FVector Direction = FPSCamera->GetForwardVector();
-	//Laser(Start, Direction * 10000, 5);
-	//DrawLaser();
+	FVector Start = FPSCamera->GetComponentLocation();
+	FVector Direction = FPSCamera->GetForwardVector();
+	Laser(Start, Direction * 10000, 5);
+	DrawLaser();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,7 +232,7 @@ void ATPSCharacter::SpawnPortalB()
 void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCount)
 {
 	if (MI_Mirror == nullptr) return;
-	
+
 	if (P_Laser == nullptr) return;
 
 	auto World = GetWorld();
@@ -241,28 +242,41 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCoun
 	FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, true, this);
 	bool Result = World->LineTraceSingleByChannel(HitResult, Start, Start + Direction, ECollisionChannel::ECC_GameTraceChannel7, QueryParam);
 
-	FColor Color = Result ? FColor::Green : FColor::Red;
-	DrawDebugLine(World, Start, Start + Direction, Color);
-	
+	/*FColor Color = Result ? FColor::Green : FColor::Red;
+	DrawDebugLine(World, Start, Start + Direction, Color);*/
+
 	if (Result)
 	{
 		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
 		SourcePoints.Add(Start);
 		EndPoints.Add(HitResult.ImpactPoint);
 
-		auto Portal = Cast<APortal>(HitResult.GetActor());
-		if (Portal && Portal->LinkedPortal.IsValid())
+		auto PlatformTrigger = Cast<APlatformTrigger>(HitResult.GetActor());
+		if (PlatformTrigger && PlatformTrigger->IsLaserTrigger && !LaserTrigger.IsValid())
 		{
-			FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
-			Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
+			LaserTrigger = PlatformTrigger;
+			LaserTrigger->LaserTriggerOn();
+		}
+		else if (!PlatformTrigger && LaserTrigger.IsValid())
+		{
+			LaserTrigger->LaserTriggerOff();
+			LaserTrigger.Reset();
+		}
 
-			FRotator PortalRotator = Portal->GetActorRotation();
-			FRotator LinkedPortalRotator = Portal->LinkedPortal->GetActorRotation();
-			FRotator DirectionRotator = LinkedPortalRotator - PortalRotator + FRotator(0.f, 180.f, 0.f);
-			Direction = DirectionRotator.RotateVector(Direction);
+		if (!PlatformTrigger)
+		{
+			auto Portal = Cast<APortal>(HitResult.GetActor());
+			if (Portal && Portal->LinkedPortal.IsValid())
+			{
+				FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
+				Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
 
-			Laser(Start, Direction, ReflectionCount);
-			return;
+				FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
+				Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
+
+				Laser(Start, Direction, ReflectionCount);
+				return;
+			}
 		}
 
 		if (ReflectionCount == 0) return;

@@ -98,6 +98,7 @@ private:
 	void DrawLaser();
 	void ResetLaser();
 
+
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_Mirror;
 	UPROPERTY(EditDefaultsOnly)
@@ -148,5 +149,8 @@ public:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class UPrimitiveComponent> GrabedComponent;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<class APlatformTrigger> LaserTrigger;
 };
 

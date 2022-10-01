@@ -26,6 +26,9 @@ public:
 private:
 
 	UPROPERTY(VisibleAnywhere)
+	USceneComponent* Scene;
+
+	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(VisibleAnywhere)

@@ -17,8 +17,11 @@ ALaserGenerator::ALaserGenerator()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("SCENE"));
+	RootComponent = Scene;
+
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
-	RootComponent = Mesh;
+	Mesh->SetupAttachment(RootComponent);
 
 	Muzzle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MUZZLE"));
 	Muzzle->SetupAttachment(RootComponent);
@@ -28,7 +31,6 @@ ALaserGenerator::ALaserGenerator()
 void ALaserGenerator::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -78,19 +80,20 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 ReflectionCo
 			LaserTrigger.Reset();
 		}
 
-		auto Portal = Cast<APortal>(HitResult.GetActor());
-		if (Portal && Portal->LinkedPortal.IsValid())
+		if (!PlatformTrigger)
 		{
-			FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
-			Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
+			auto Portal = Cast<APortal>(HitResult.GetActor());
+			if (Portal && Portal->LinkedPortal.IsValid())
+			{
+				FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
+				Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
 
-			FRotator PortalRotator = Portal->GetActorRotation();
-			FRotator LinkedPortalRotator = Portal->LinkedPortal->GetActorRotation();
-			FRotator DirectionRotator = LinkedPortalRotator - PortalRotator + FRotator(0.f, 180.f, 0.f);
-			Direction = DirectionRotator.RotateVector(Direction);
+				FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
+				Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
 
-			Laser(Start, Direction, ReflectionCount);
-			return;
+				Laser(Start, Direction, ReflectionCount);
+				return;
+			}
 		}
 
 		if (ReflectionCount == 0) return;
