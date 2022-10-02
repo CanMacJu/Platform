@@ -125,6 +125,7 @@ void ALaserGenerator::DrawLaser()
 	{
 		LaserParticles[i]->SetBeamSourcePoint(0, SourcePoints[i], 0);
 		LaserParticles[i]->SetBeamEndPoint(0, EndPoints[i]);
+		LaserParticles[i]->SetRelativeScale3D(FVector(5.f, 5.f, 0.f));
 	}
 }
 

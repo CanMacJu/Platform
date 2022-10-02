@@ -146,7 +146,7 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			Pawn->GetMovementComponent()->Velocity = LinkedPortal->GetTransform().TransformVector(RelativeVelocity);
 
 			float Ydiff = GetTransform().InverseTransformPositionNoScale(Pawn->GetActorLocation()).Y;
-			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 8 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
+			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 7 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
 		}
 	}
 }
