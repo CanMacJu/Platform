@@ -137,7 +137,6 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			FRotator Rotator = LinkedPortal->GetActorRotation() - GetActorRotation();
 			Pawn->AddControllerYawInput((180.f + Rotator.Yaw) * 0.4f);
 
-
 			/*FRotator VelocityRotator = FRotator(0, Rotator.Yaw + 180.f, 0);
 			FVector OriginVelocity = Pawn->GetMovementComponent()->Velocity;
 			Pawn->GetMovementComponent()->Velocity = VelocityRotator.RotateVector(OriginVelocity);*/
@@ -146,7 +145,7 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			Pawn->GetMovementComponent()->Velocity = LinkedPortal->GetTransform().TransformVector(RelativeVelocity);
 
 			float Ydiff = GetTransform().InverseTransformPositionNoScale(Pawn->GetActorLocation()).Y;
-			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 7 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
+			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 8 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
 		}
 	}
 }

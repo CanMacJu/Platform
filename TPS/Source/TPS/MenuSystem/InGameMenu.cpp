@@ -14,9 +14,11 @@ bool UInGameMenu::Initialize()
 		return false;
 
 	Btn_InGameMenu_MainMenu->OnClicked.AddDynamic(this, &UInGameMenu::OnClick_InGameMenu_MainMenu);
-	Btn_InGameMenu_Cancel->OnClicked.AddDynamic(this, &UInGameMenu::OnClick_InGameMenu_Cancel);
-	Btn_ConfirmMenu_Confirm->OnClicked.AddDynamic(this, &UInGameMenu::OnClick_ConfirmMenu_Confirm);
-	Btn_ConfirmMenu_Cancel->OnClicked.AddDynamic(this, &UInGameMenu::OnClick_ConfirmMenu_Cancel);
+	Btn_InGameMenu_Cancel->OnClicked.AddDynamic(this, &UInGameMenu::Cancel);
+	Btn_ConfirmMenu_Confirm->OnClicked.AddDynamic(this, &UInGameMenu::LoadMainMenu);
+	Btn_ConfirmMenu_Cancel->OnClicked.AddDynamic(this, &UInGameMenu::Cancel);
+	Btn_CompleteMenu_Confirm->OnClicked.AddDynamic(this, &UInGameMenu::LoadMainMenu);
+	Btn_CompleteMenu_Cancel->OnClicked.AddDynamic(this, &UInGameMenu::Cancel);
 
 	IsActive = false;
 
@@ -29,11 +31,14 @@ void UInGameMenu::NativeConstruct()
 
 }
 
-void UInGameMenu::OnActive()
+void UInGameMenu::CallupInGameMenu()
 {
 	if (InGameMenu == nullptr)
 		return;
+
 	MenuWidgets.push(InGameMenu);
+	if (WidgetSwitcher_MenuSwitcher && InGameMenu)
+		WidgetSwitcher_MenuSwitcher->SetActiveWidget(InGameMenu);
 
 	this->AddToViewport();
 
@@ -53,7 +58,7 @@ void UInGameMenu::OnActive()
 	IsActive = true;
 }
 
-void UInGameMenu::OnInactive()
+void UInGameMenu::CancelInGameMenu()
 {
 	if (MenuWidgets.empty())
 	{
@@ -71,6 +76,25 @@ void UInGameMenu::OnInactive()
 	}
 }
 
+void UInGameMenu::CompleteInGameMenu()
+{
+	if (WidgetSwitcher_MenuSwitcher && CompleteMenu)
+	{
+		if (IsActive)
+		{
+			int32 StackLength = MenuWidgets.size();
+			for (int32 i = 0; i < StackLength; ++i)
+			{
+				this->Cancel();
+			}
+		}
+		CallupInGameMenu();
+		MenuWidgets.pop();
+		MenuWidgets.push(CompleteMenu);
+		WidgetSwitcher_MenuSwitcher->SetActiveWidget(CompleteMenu);
+	}
+}
+
 void UInGameMenu::OnClick_InGameMenu_MainMenu()
 {
 	if (WidgetSwitcher_MenuSwitcher && ConfirmMenu)
@@ -80,12 +104,7 @@ void UInGameMenu::OnClick_InGameMenu_MainMenu()
 	}
 }
 
-void UInGameMenu::OnClick_InGameMenu_Cancel()
-{
-	Inactive();
-}
-
-void UInGameMenu::OnClick_ConfirmMenu_Confirm()
+void UInGameMenu::LoadMainMenu()
 {
 	if (Btn_ConfirmMenu_Confirm && MenuInterface)
 	{
@@ -94,19 +113,14 @@ void UInGameMenu::OnClick_ConfirmMenu_Confirm()
 	}
 }
 
-void UInGameMenu::OnClick_ConfirmMenu_Cancel()
-{
-	Inactive();
-}
-
 bool UInGameMenu::GetIsActive()
 {
 	return IsActive;
 }
 
-void UInGameMenu::Inactive()
+void UInGameMenu::Cancel()
 {
 	MenuWidgets.pop();
 
-	this->OnInactive();
+	this->CancelInGameMenu();
 }

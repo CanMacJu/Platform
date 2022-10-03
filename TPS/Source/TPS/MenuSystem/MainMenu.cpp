@@ -36,6 +36,8 @@ bool UMainMenu::Initialize()
 	Btn_HostMenu_Host->OnClicked.AddDynamic(this, &UMainMenu::OnClick_HostMenu_Host);
 	Btn_HostMenu_Cancel->OnClicked.AddDynamic(this, &UMainMenu::OnClick_HostMenu_Cancel);
 
+	Btn_MainMenu_Join->SetIsEnabled(false);
+
 	return true;
 }
 

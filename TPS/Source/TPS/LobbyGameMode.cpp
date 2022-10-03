@@ -44,6 +44,6 @@ void ALobbyGameMode::ReadyGame()
 {
 	if (NumberOfPlayers >= minimumPlayerNum)
 	{
-		GetWorldTimerManager().SetTimer(StartGameTimerHandle, this, &ALobbyGameMode::StartGame, 10.f, false);
+		GetWorldTimerManager().SetTimer(StartGameTimerHandle, this, &ALobbyGameMode::StartGame, 3.f, false);
 	}
 }

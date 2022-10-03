@@ -33,6 +33,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnInGameMenu();
 
+	UFUNCTION(BlueprintCallable)
+	void OnCompleteInGameMenu();
 
 	virtual void Host(const FString& InputServerName) override;
 

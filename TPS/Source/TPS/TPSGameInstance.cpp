@@ -95,11 +95,19 @@ void UTPSGameInstance::OnInGameMenu()
 {
 	if (InGameMenu && InGameMenu->GetIsActive())
 	{
-		InGameMenu->Inactive();
+		InGameMenu->Cancel();
 	}
 	else
 	{
-		InGameMenu->OnActive();
+		InGameMenu->CallupInGameMenu();
+	}
+}
+
+void UTPSGameInstance::OnCompleteInGameMenu()
+{
+	if (InGameMenu)
+	{
+		InGameMenu->CompleteInGameMenu();
 	}
 }
 

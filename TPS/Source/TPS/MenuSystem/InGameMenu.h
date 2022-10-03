@@ -22,24 +22,20 @@ public:
 	virtual bool Initialize() override;
 	virtual void NativeConstruct() override;
 
-	void OnActive();
-	void OnInactive();
+	void CallupInGameMenu();
+	void CancelInGameMenu();
+	void CompleteInGameMenu();
 
 	UFUNCTION()
 	void OnClick_InGameMenu_MainMenu();
 
 	UFUNCTION()
-	void OnClick_InGameMenu_Cancel();
-
-	UFUNCTION()
-	void OnClick_ConfirmMenu_Confirm();
-
-	UFUNCTION()
-	void OnClick_ConfirmMenu_Cancel();
+	void LoadMainMenu();
 
 	bool GetIsActive();
 
-	void Inactive();
+	UFUNCTION()
+	void Cancel();
 
 private:
 
@@ -49,23 +45,33 @@ private:
 	UPROPERTY(Transient, meta = (BindWidget))
 	class UWidget* ConfirmMenu;
 
+	UPROPERTY(Transient, meta = (BindWidget))
+	class UWidget* CompleteMenu;
 
+
+	UPROPERTY(meta = (BindWidget))
+	class UWidgetSwitcher* WidgetSwitcher_MenuSwitcher;
+
+	// InGameMenu
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_InGameMenu_MainMenu;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_InGameMenu_Cancel;
 
-
-	UPROPERTY(meta = (BindWidget))
-	class UWidgetSwitcher* WidgetSwitcher_MenuSwitcher;
-
-
+	// ConfirmMenu
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_ConfirmMenu_Confirm;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_ConfirmMenu_Cancel;
+
+	// CompleteMenu
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_CompleteMenu_Confirm;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_CompleteMenu_Cancel;
 
 	bool IsActive;
 
