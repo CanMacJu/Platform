@@ -25,6 +25,8 @@ ALaserGenerator::ALaserGenerator()
 
 	Muzzle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MUZZLE"));
 	Muzzle->SetupAttachment(RootComponent);
+
+	ReflectionCount = 5;
 }
 
 // Called when the game starts or when spawned
@@ -42,11 +44,11 @@ void ALaserGenerator::Tick(float DeltaTime)
 
 	FVector Start = Muzzle->GetComponentLocation();
 	FVector Direction = Muzzle->GetForwardVector();
-	Laser(Start, Direction * 10000, 5);
+	Laser(Start, Direction * 10000, ReflectionCount);
 	DrawLaser();
 }
 
-void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 ReflectionCount)
+void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionCount)
 {
 	if (MI_Mirror == nullptr) return;
 
@@ -91,12 +93,12 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 ReflectionCo
 				FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
 				Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
 
-				Laser(Start, Direction, ReflectionCount);
+				Laser(Start, Direction, _ReflectionCount);
 				return;
 			}
 		}
 
-		if (ReflectionCount == 0) return;
+		if (_ReflectionCount == 0) return;
 
 		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
 		{
@@ -105,8 +107,8 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 ReflectionCo
 			Start = HitResult.ImpactPoint;
 			Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
 
-			ReflectionCount--;
-			Laser(Start, Direction, ReflectionCount);
+			_ReflectionCount--;
+			Laser(Start, Direction, _ReflectionCount);
 		}
 	}
 	else

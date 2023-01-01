@@ -79,12 +79,13 @@ ATPSCharacter::ATPSCharacter()
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("Handle"));
 
 	// Laser
-	//LaserParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle"));
+	ReflectionCount = 5;
 }
 
 void ATPSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
 
 	ActiveFPSCamera();
 }
@@ -105,7 +106,7 @@ void ATPSCharacter::Tick(float DeltaTime)
 
 	FVector Start = FPSCamera->GetComponentLocation();
 	FVector Direction = FPSCamera->GetForwardVector();
-	Laser(Start, Direction * 10000, 5);
+	Laser(Start, Direction * 10000, ReflectionCount);
 	DrawLaser();
 }
 
@@ -229,7 +230,7 @@ void ATPSCharacter::SpawnPortalB()
 	}
 }
 
-void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCount)
+void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCount)
 {
 	if (MI_Mirror == nullptr) return;
 
@@ -274,12 +275,12 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCoun
 				FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
 				Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
 
-				Laser(Start, Direction, ReflectionCount);
+				Laser(Start, Direction, _ReflectionCount);
 				return;
 			}
 		}
 
-		if (ReflectionCount == 0) return;
+		if (_ReflectionCount == 0) return;
 
 		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
 		{
@@ -288,8 +289,8 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 ReflectionCoun
 			Start = HitResult.ImpactPoint;
 			Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
 
-			ReflectionCount--;
-			Laser(Start, Direction, ReflectionCount);
+			_ReflectionCount--;
+			Laser(Start, Direction, _ReflectionCount);
 		}
 	}
 	else
@@ -373,6 +374,39 @@ void ATPSCharacter::ActiveTPSCamera()
 	FPSCamera->SetActive(false);
 	this->bUseControllerRotationYaw = false;
 	IsFPS = false;
+}
+
+void ATPSCharacter::SwitchMouseCursor()
+{
+	IsShowMouse ? InActiveMouseCursor() : ActiveMouseCursor();
+}
+
+void ATPSCharacter::ActiveMouseCursor()
+{
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController == nullptr)
+		return;
+
+	FInputModeGameAndUI InputModeData;
+	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	PlayerController->SetInputMode(InputModeData);
+
+	PlayerController->bShowMouseCursor = true;
+	IsShowMouse = true;
+}
+
+void ATPSCharacter::InActiveMouseCursor()
+{
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController == nullptr)
+		return;
+
+	FInputModeGameOnly InputModeData;
+	PlayerController->SetInputMode(InputModeData);
+
+	PlayerController->bShowMouseCursor = false;
+	IsShowMouse = false;
 }
 
 //void ATPSCharacter::SetTeleportDelay()

@@ -90,14 +90,15 @@ private:
 
 	// Laser
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	void Laser(FVector Start, FVector Direction, int32 ReflectionCount);
+	void Laser(FVector Start, FVector Direction, int32 _ReflectionCount);
 
 	TArray<class UParticleSystemComponent*> LaserParticles;
 	TArray<FVector>SourcePoints;
 	TArray<FVector>EndPoints;
 	void DrawLaser();
 	void ResetLaser();
-
+	UPROPERTY(EditDefaultsOnly)
+	int32 ReflectionCount;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_Mirror;
@@ -111,7 +112,7 @@ private:
 	bool IsGrab = false;
 	FRotator GrabRotator;
 	FVector GrabLocation;
-	
+
 	// Camera (ÇÏ³ª¸¸ ¾¸)
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void SwitchActiveCamera();
@@ -152,5 +153,21 @@ public:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class APlatformTrigger> LaserTrigger;
+
+
+
+
+
+
+
+
+	bool IsShowMouse = false;
+
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+		void SwitchMouseCursor();
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+		void ActiveMouseCursor();
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+		void InActiveMouseCursor();
 };
 

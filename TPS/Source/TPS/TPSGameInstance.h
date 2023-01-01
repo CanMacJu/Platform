@@ -83,4 +83,10 @@ private:
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
 	FString ServerName;
+
+
+
+
+
+
 };
