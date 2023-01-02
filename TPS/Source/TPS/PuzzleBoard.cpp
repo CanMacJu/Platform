@@ -111,7 +111,7 @@ void APuzzleBoard::AStar()
 	std::priority_queue<Node, std::vector<Node>, std::greater<Node>> pq;
 	std::vector<int32> Parents;
 	std::vector<int32> Blanks;
-	std::unordered_set<std::size_t> explored;
+	std::unordered_set<std::size_t> Explored;
 	int32 Index = 0;
 
 	{
@@ -153,10 +153,10 @@ void APuzzleBoard::AStar()
 				std::vector<int32> IndexDatas = node.IndexDatas;
 				::Swap(IndexDatas[NextBlankIdx], IndexDatas[node.BlankIdx]);
 				std::size_t hash_value = VectorHasher()(IndexDatas);
-				if (explored.count(hash_value) == 1)
+				if (Explored.count(hash_value) == 1)
 					continue;
 				else
-					explored.insert(hash_value);
+					Explored.insert(hash_value);
 
 				int32 BlankIdx = NextBlankIdx;
 
@@ -188,6 +188,8 @@ void APuzzleBoard::AStar()
 	UE_LOG(LogTemp, Warning, TEXT("Size:	%i"), Parents.size());
 	UE_LOG(LogTemp, Warning, TEXT("Count:	%i"), Path.size());
 
+	SwapSpeed = Path.size() * 450.f / Size / TimeOut;
+
 	if (IsAI && Path.empty() == false)
 	{
 		int32 idx = Path.back();
@@ -196,7 +198,6 @@ void APuzzleBoard::AStar()
 		SelectPiece(idx);
 	}
 
-	IsReset = false;
 	//std::reverse(Path.begin(), Path.end());
 }
 
@@ -336,9 +337,9 @@ void APuzzleBoard::ShuffleBoard()
 void APuzzleBoard::RefreshBoard()
 {
 	UpdatePieceData();
-	CheckCorrect();
+	bool IsCorrect = CheckCorrect();
 
-	if (IsAI && Path.empty() == false)
+	if (IsCorrect == false && IsAI && Path.empty() == false)
 	{
 		int32 nextIndex = Path.back();
 		Path.pop_back();
@@ -364,7 +365,16 @@ bool APuzzleBoard::CheckCorrect()
 			return false;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Complete"));
+	if (IsAI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Complete and Shuffle"));
+		ShuffleBoard();
+		AStar();
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Complete"));
+
+
 	return true;
 }
 
@@ -390,8 +400,8 @@ bool APuzzleBoard::CanMove(int32 _SelectIndex)
 
 void APuzzleBoard::SetSpawn(int32 _Size, float _SwapSpeed, bool _IsAI)
 {
-	Size = _Size;
-	SwapSpeed = _SwapSpeed;
+	Size = FMath::Clamp(_Size, 1, 5);
+	SwapSpeed = FMath::Clamp(_SwapSpeed, 500.f, 1000.f);
 	IsAI = _IsAI;
 }
 

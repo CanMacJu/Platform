@@ -25,7 +25,7 @@ void APuzzleGameMode::StartPlay()
 	if (World == nullptr)
 		return;
 
-	const int32 Size = 4;
+	const int32 Size = 5;
 
 	FName Path = TEXT("Class'/Game/PuzzleTest/BP_PuzzleBoard.BP_PuzzleBoard_C'");
 	UClass* BP_PuzzleBoardClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
@@ -33,7 +33,7 @@ void APuzzleGameMode::StartPlay()
 	APuzzleBoard* Board = World->SpawnActorDeferred<APuzzleBoard>(BP_PuzzleBoardClass, FTransform());
 	if (Board)
 	{
-		Board->SetSpawn(Size, 500.f, true);
+		Board->SetSpawn(Size, 900.f, true);
 		Board->FinishSpawning(FTransform());
 	}
 
@@ -74,12 +74,5 @@ void APuzzleGameMode::StartPlay()
 	Board->SetMainPiece(MainPiece);
 	Board->ShuffleBoard();
 	if (Board->GetIsAI())
-	{
-		Board->AStar();
-		while (Board->IsReset)
-		{
-			Board->ShuffleBoard();
 			Board->AStar();
-		}
-	}
 }

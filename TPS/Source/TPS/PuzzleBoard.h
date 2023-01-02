@@ -42,7 +42,6 @@ public:
 
 	bool GetIsAI() { return IsAI; };
 	void AStar();
-	bool IsReset;
 
 private:
 	
@@ -86,7 +85,7 @@ private:
 
 	std::vector<int32> Path;
 	bool IsAI;
-	int32 ResetCount;
+	int32 TimeOut = 30;
 
 	bool IsMovePiece;
 	int32 BlankIndex;
@@ -102,7 +101,7 @@ private:
 	int32 Size = 1;
 
 	UPROPERTY(EditInstanceOnly, meta = (AllowPrivateAccess = "true"), Category = "PuzzleSetting")
-	float SwapSpeed = 500.f;
+	float SwapSpeed;
 	
 	UPROPERTY(VisibleAnywhere)
 	class APuzzlePawn* Player;
