@@ -6,6 +6,8 @@
 #include "PuzzlePawn.h"
 #include <queue>
 #include <vector>
+#include <unordered_set>
+#include <functional>
 
 // Sets default values
 APuzzleBoard::APuzzleBoard()
@@ -92,11 +94,24 @@ struct Node
 	int32 parentKey;	// 부모의 parents 배열에서의 Index
 };
 
+struct VectorHasher
+{
+	std::size_t operator()(const std::vector<int>& v) const
+	{
+		std::size_t seed = 0;
+		for (int i : v) {
+			seed ^= std::hash<int>()(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		}
+		return seed;
+	}
+};
+
 void APuzzleBoard::AStar()
 {
 	std::priority_queue<Node, std::vector<Node>, std::greater<Node>> pq;
 	std::vector<int32> Parents;
 	std::vector<int32> Blanks;
+	std::unordered_set<std::size_t> explored;
 	int32 Index = 0;
 
 	{
@@ -127,17 +142,23 @@ void APuzzleBoard::AStar()
 
 		for (int32 i = 0; i < DIR_COUNT; ++i)
 		{
-			int32 NextIndex = GetNextIndex(node.BlankIdx, i);
-			if (NextIndex == node.BlankIdx)
+			int32 NextBlankIdx = GetNextBlankIdx(node.BlankIdx, i);
+			if (NextBlankIdx == node.BlankIdx)
 				continue;
 
-			if (NextIndex == Blanks[node.parentKey])
+			if (NextBlankIdx == Blanks[node.parentKey])
 				continue;
 
 			{
 				std::vector<int32> IndexDatas = node.IndexDatas;
-				::Swap(IndexDatas[NextIndex], IndexDatas[node.BlankIdx]);
-				int32 BlankIdx = NextIndex;
+				::Swap(IndexDatas[NextBlankIdx], IndexDatas[node.BlankIdx]);
+				std::size_t hash_value = VectorHasher()(IndexDatas);
+				if (explored.count(hash_value) == 1)
+					continue;
+				else
+					explored.insert(hash_value);
+
+				int32 BlankIdx = NextBlankIdx;
 
 				int32 g = node.g + 10;
 				int32 h = GetHeuristic(IndexDatas);
@@ -149,14 +170,6 @@ void APuzzleBoard::AStar()
 
 				pq.push(Node{ IndexDatas, BlankIdx, g + h, g, Key, parentKey });
 			}
-		}
-
-		if (Blanks.size() > 1000000)
-		{
-			IsReset = true;
-			ResetCount++;
-			UE_LOG(LogTemp, Error, TEXT("reset"));
-			return;
 		}
 	}
 
@@ -173,7 +186,6 @@ void APuzzleBoard::AStar()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Size:	%i"), Parents.size());
-	UE_LOG(LogTemp, Warning, TEXT("Reset:	%i"), ResetCount);
 	UE_LOG(LogTemp, Warning, TEXT("Count:	%i"), Path.size());
 
 	if (IsAI && Path.empty() == false)
@@ -191,7 +203,8 @@ void APuzzleBoard::AStar()
 int32 APuzzleBoard::GetHeuristic(std::vector<int32> IndexDatas)
 {
 	int32 total = 0;
-	/*for (int32 i = 0; i < Size * Size; ++i)
+	// 유클리드 거리
+	for (int32 i = 0; i < Size * Size; ++i)
 	{
 		int32 CorrectRow = i / Size;
 		int32 CorrectCol = i % Size;
@@ -203,8 +216,9 @@ int32 APuzzleBoard::GetHeuristic(std::vector<int32> IndexDatas)
 		int32 X = CorrectCol - CurrentCol;
 
 		total += static_cast<int32>(::sqrt(::pow(X, 2) + ::pow(Y, 2)) * 10.0);
-	}*/
-	for (int32 i = 0; i < Size * Size; ++i)
+	}
+	// 맨해튼 거리
+	/*for (int32 i = 0; i < Size * Size; ++i)
 	{
 		int32 CorrectRow = i / Size;
 		int32 CorrectCol = i % Size;
@@ -213,7 +227,7 @@ int32 APuzzleBoard::GetHeuristic(std::vector<int32> IndexDatas)
 		int32 CurrentCol = IndexDatas[i] % Size;
 
 		total += ::abs(CorrectRow - CurrentRow) + ::abs(CorrectCol - CurrentCol);
-	}
+	}*/
 
 	return total * 10;
 }
@@ -229,7 +243,7 @@ bool APuzzleBoard::GetIsCorrect(std::vector<int32> IndexDatas)
 	return true;
 }
 
-int32 APuzzleBoard::GetNextIndex(int32 Index, int32 DIR)
+int32 APuzzleBoard::GetNextBlankIdx(int32 Index, int32 DIR)
 {
 	int32 Row = Index / Size;
 	int32 Col = Index % Size;

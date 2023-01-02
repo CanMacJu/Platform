@@ -69,7 +69,7 @@ private:
 	std::vector<int32> GetIndexData();
 	int32 GetHeuristic(std::vector<int32> IndexDatas);
 	bool GetIsCorrect(std::vector<int32> IndexDatas);
-	int32 GetNextIndex(int32 Index, int32 DIR);
+	int32 GetNextBlankIdx(int32 Index, int32 DIR);
 
 private:
 
