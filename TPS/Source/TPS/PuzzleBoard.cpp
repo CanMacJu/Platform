@@ -320,12 +320,12 @@ void APuzzleBoard::ShuffleBoard()
 
 	for (int32 i = 0; i < 300; ++i)
 	{
-		int32 rand = ::rand() % DIR_COUNT;
-		SetRandIndex(rand);
+		int32 RandDir = ::rand() % DIR_COUNT;
+		SetRandIndex(RandDir);
 		while (CanMove(SelectIndex) == false)
 		{
-			rand = ::rand() % DIR_COUNT;
-			SetRandIndex(rand);
+			RandDir = ::rand() % DIR_COUNT;
+			SetRandIndex(RandDir);
 		}
 
 		UpdatePieceData();

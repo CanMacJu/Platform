@@ -37,6 +37,8 @@ private:
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void Laser(FVector Start, FVector Direction, int32 _ReflectionCount);
 
+	void ResetTrigger();
+
 	TArray<class UParticleSystemComponent*> LaserParticles;
 	TArray<FVector>SourcePoints;
 	TArray<FVector>EndPoints;
@@ -52,4 +54,14 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class APlatformTrigger> LaserTrigger;
+
+	enum class eHitType
+	{
+		NONE,
+		PORTAL,
+		MIRROR,
+		TRIGGER,
+
+		OTHER
+	};
 };

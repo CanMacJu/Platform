@@ -21,8 +21,9 @@ protected:
 
 public:	
 
-	FTransform ClampPortalPosition(FVector Location);
+	std::pair<bool, FTransform> ClampPortalPosition(FVector Location, TWeakObjectPtr<class APortal> LinkedPortal);
 
+	bool CheckOverlapLinkedPortal(FVector PositionA, FVector PositionB);
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

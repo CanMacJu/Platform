@@ -102,12 +102,12 @@ void ATPSCharacter::Tick(float DeltaTime)
 	}
 
 	// Laser
-	ResetLaser();
+	/*ResetLaser();
 
 	FVector Start = FPSCamera->GetComponentLocation();
 	FVector Direction = FPSCamera->GetForwardVector();
 	Laser(Start, Direction * 10000, ReflectionCount);
-	DrawLaser();
+	DrawLaser();*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,159 +145,207 @@ void ATPSCharacter::SpawnPortalA()
 	auto World = GetWorld();
 	if (World == nullptr) return;
 
-	if (IsFPS)
+	FHitResult HitResult;
+	FVector Start = FPSCamera->GetComponentLocation();
+	FVector End = Start + FPSCamera->GetForwardVector() * 10000.f;
+	FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
+
+	bool Result = World->LineTraceSingleByChannel(HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_GameTraceChannel1,
+		QueryParam);
+
+	if (Result && HitResult.IsValidBlockingHit() == false) return;
+
+	APortalWall* PortalWall = Cast<APortalWall>(HitResult.GetActor());
+	if (PortalWall == nullptr) return;
+
+	std::pair<bool, FTransform> ClampResult = PortalWall->ClampPortalPosition(HitResult.Location, PortalB);
+	bool IsOverlap = ClampResult.first;
+	FTransform ClampTransform = ClampResult.second;
+
+	if (IsOverlap) return;
+
+	if (PortalA.IsValid()) PortalA->Destroy();
+
+	FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
+	UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
+
+	APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, ClampTransform);
+	if (Portal)
 	{
-		FHitResult HitResult;
-		FVector Start = FPSCamera->GetComponentLocation();
-		FVector End = Start + FPSCamera->GetForwardVector() * 10000.f;
-		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
-
-		bool Result = World->LineTraceSingleByChannel(OUT HitResult,
-			Start,
-			End,
-			ECollisionChannel::ECC_GameTraceChannel1,
-			QueryParam);
-
-		FColor Color = Result ? FColor::Green : FColor::Red;
-		DrawDebugLine(World, Start, End, Color, false, 3.f);
-
-		if (Result && HitResult.IsValidBlockingHit())
-		{
-			APortalWall* PortalWall = Cast<APortalWall>(HitResult.GetActor());
-			if (PortalWall == nullptr) return;
-
-			if (PortalA.IsValid()) PortalA->Destroy();
-
-			FTransform ClampTransform = PortalWall->ClampPortalPosition(HitResult.Location);
-
-			FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
-			UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
-
-			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, ClampTransform);
-			if (Portal)
-			{
-				PortalA = Portal;
-				Portal->PortalA = true;
-				Portal->LinkPortal(PortalB);
-				Portal->FinishSpawning(ClampTransform);
-			}
-		}
+		PortalA = Portal;
+		Portal->PortalA = true;
+		Portal->LinkPortal(PortalB);
+		Portal->FinishSpawning(ClampTransform);
 	}
 }
 
 void ATPSCharacter::SpawnPortalB()
 {
-	auto World = GetWorld();
+	UWorld* World = GetWorld();
 	if (World == nullptr) return;
 
-	if (IsFPS)
+	FHitResult HitResult;
+	FVector Start = FPSCamera->GetComponentLocation();
+	FVector End = Start + FPSCamera->GetForwardVector() * 10000.f;
+	FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
+
+	bool Result = World->LineTraceSingleByChannel(HitResult,
+		Start,
+		End,
+		ECollisionChannel::ECC_GameTraceChannel1,
+		QueryParam);
+
+	if (Result && HitResult.IsValidBlockingHit() == false) return;
+
+	APortalWall* PortalWall = Cast<APortalWall>(HitResult.GetActor());
+	if (PortalWall == nullptr) return;
+
+	std::pair<bool, FTransform> ClampResult = PortalWall->ClampPortalPosition(HitResult.Location, PortalA);
+	bool IsOverlap = ClampResult.first;
+	FTransform ClampTransform = ClampResult.second;
+
+	if (IsOverlap) return;
+
+	if (PortalB.IsValid()) PortalB->Destroy();
+
+	FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
+	UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
+
+	APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, ClampTransform);
+	if (Portal)
 	{
-		FHitResult HitResult;
-		FVector Start = FPSCamera->GetComponentLocation();
-		FVector End = Start + FPSCamera->GetForwardVector() * 10000.f;
-		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
-
-		bool Result = World->LineTraceSingleByChannel(OUT HitResult,
-			Start,
-			End,
-			ECollisionChannel::ECC_GameTraceChannel1,
-			QueryParam);
-
-		FColor Color = Result ? FColor::Green : FColor::Red;
-		DrawDebugLine(World, Start, End, Color, false, 3.f);
-
-		if (Result && HitResult.IsValidBlockingHit())
-		{
-			APortalWall* PortalWall = Cast<APortalWall>(HitResult.GetActor());
-			if (PortalWall == nullptr) return;
-
-			if (PortalB.IsValid()) PortalB->Destroy();
-
-			FTransform ClampTransform = PortalWall->ClampPortalPosition(HitResult.Location);
-
-			FName Path = TEXT("Class'/Game/Portal/BP_Portal.BP_Portal_C'");
-			UClass* BP_PortalClass = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, *Path.ToString()));
-
-			APortal* Portal = World->SpawnActorDeferred<APortal>(BP_PortalClass, ClampTransform);
-			if (Portal)
-			{
-				PortalB = Portal;
-				Portal->PortalA = false;
-				Portal->LinkPortal(PortalA);
-				Portal->FinishSpawning(ClampTransform);
-			}
-		}
+		PortalB = Portal;
+		Portal->PortalA = false;
+		Portal->LinkPortal(PortalA);
+		Portal->FinishSpawning(ClampTransform);
 	}
 }
 
 void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCount)
 {
-	if (MI_Mirror == nullptr) return;
+	UWorld* World = GetWorld();
 
-	if (P_Laser == nullptr) return;
+	{
+		if (World == nullptr) return;
 
-	auto World = GetWorld();
-	if (World == nullptr) return;
+		if (MI_Mirror == nullptr) return;
+
+		if (P_Laser == nullptr) return;
+	}
 
 	FHitResult HitResult;
 	FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, true, this);
 	bool Result = World->LineTraceSingleByChannel(HitResult, Start, Start + Direction, ECollisionChannel::ECC_GameTraceChannel7, QueryParam);
 
-	/*FColor Color = Result ? FColor::Green : FColor::Red;
-	DrawDebugLine(World, Start, Start + Direction, Color);*/
 
-	if (Result)
+	AActor* HitActor = HitResult.GetActor();
+	eHitType HitType;
+
 	{
+		if (Result == false)
+		{
+			HitType = eHitType::NONE;
+			goto SWITCH;
+		}
+
+		if (Cast<APortal>(HitActor))
+		{
+			HitType = eHitType::PORTAL;
+			goto SET_LASER;
+		}
+
+		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
+		{
+			if (_ReflectionCount == 0) return;
+
+			HitType = eHitType::MIRROR;
+			goto SET_LASER;
+		}
+
+		if (Cast<APlatformTrigger>(HitActor))
+		{
+			HitType = eHitType::TRIGGER;
+			goto SET_LASER;
+		}
+
+		// 추가할거는 여기에 추가
+
+
+		// 무적권 얘는 맨 마지막
+		HitType = eHitType::OTHER;
+		goto SET_LASER;
+	}
+
+SET_LASER:
+	LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
+	SourcePoints.Add(Start);
+	EndPoints.Add(HitResult.ImpactPoint);
+
+SWITCH:
+	switch (HitType)
+	{
+	case eHitType::NONE:
 		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
 		SourcePoints.Add(Start);
-		EndPoints.Add(HitResult.ImpactPoint);
+		EndPoints.Add(Start + Direction);
 
-		auto PlatformTrigger = Cast<APlatformTrigger>(HitResult.GetActor());
-		if (PlatformTrigger && PlatformTrigger->IsLaserTrigger && !LaserTrigger.IsValid())
+		ResetTrigger();
+		break;
+	case eHitType::PORTAL:
+	{
+		APortal* Portal = Cast<APortal>(HitActor);
+		if (Portal->LinkedPortal.IsValid())
+		{
+			FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
+			Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
+
+			FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
+			Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
+
+			Laser(Start, Direction, _ReflectionCount);
+		}
+		break;
+	}
+	case eHitType::MIRROR:
+	{
+		FVector ImpactNormal = HitResult.ImpactNormal;
+
+		Start = HitResult.ImpactPoint;
+		Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
+
+		_ReflectionCount--;
+		Laser(Start, Direction, _ReflectionCount);
+		break;
+	}
+	case eHitType::TRIGGER:
+	{
+		APlatformTrigger* PlatformTrigger = Cast<APlatformTrigger>(HitActor);
+		if (PlatformTrigger->IsLaserTrigger && LaserTrigger.IsValid() == false)
 		{
 			LaserTrigger = PlatformTrigger;
 			LaserTrigger->LaserTriggerOn();
 		}
-		else if (!PlatformTrigger && LaserTrigger.IsValid())
-		{
-			LaserTrigger->LaserTriggerOff();
-			LaserTrigger.Reset();
-		}
-
-		if (!PlatformTrigger)
-		{
-			auto Portal = Cast<APortal>(HitResult.GetActor());
-			if (Portal && Portal->LinkedPortal.IsValid())
-			{
-				FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
-				Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
-
-				FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
-				Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
-
-				Laser(Start, Direction, _ReflectionCount);
-				return;
-			}
-		}
-
-		if (_ReflectionCount == 0) return;
-
-		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
-		{
-			FVector ImpactNormal = HitResult.ImpactNormal;
-
-			Start = HitResult.ImpactPoint;
-			Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
-
-			_ReflectionCount--;
-			Laser(Start, Direction, _ReflectionCount);
-		}
+		break;
 	}
-	else
+	case eHitType::OTHER:
+		ResetTrigger();
+		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("case 추가해야함"));
+		break;
+	}
+
+}
+
+void ATPSCharacter::ResetTrigger()
+{
+	if (LaserTrigger.IsValid())
 	{
-		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
-		SourcePoints.Add(Start);
-		EndPoints.Add(Start + Direction);
+		LaserTrigger->LaserTriggerOff();
+		LaserTrigger.Reset();
 	}
 }
 
@@ -376,51 +424,7 @@ void ATPSCharacter::ActiveTPSCamera()
 	IsFPS = false;
 }
 
-void ATPSCharacter::SwitchMouseCursor()
-{
-	IsShowMouse ? InActiveMouseCursor() : ActiveMouseCursor();
-}
 
-void ATPSCharacter::ActiveMouseCursor()
-{
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController == nullptr)
-		return;
-
-	FInputModeGameAndUI InputModeData;
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	PlayerController->SetInputMode(InputModeData);
-
-	PlayerController->bShowMouseCursor = true;
-	IsShowMouse = true;
-}
-
-void ATPSCharacter::InActiveMouseCursor()
-{
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController == nullptr)
-		return;
-
-	FInputModeGameOnly InputModeData;
-	PlayerController->SetInputMode(InputModeData);
-
-	PlayerController->bShowMouseCursor = false;
-	IsShowMouse = false;
-}
-
-//void ATPSCharacter::SetTeleportDelay()
-//{
-//	Teleportable = false;
-//	GetWorldTimerManager().SetTimer(TeleportDelayTimerHandle, this, &ATPSCharacter::SetTeleportable, 0.1f, false);
-//}
-//
-//void ATPSCharacter::SetTeleportable()
-//{
-//	UE_LOG(LogTemp, Error, TEXT("Timeline"));
-//	Teleportable = true;
-//	GetWorldTimerManager().ClearTimer(TeleportDelayTimerHandle);
-//}
 
 void ATPSCharacter::OnResetVR()
 {

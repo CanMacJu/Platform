@@ -88,9 +88,12 @@ private:
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void SpawnPortalB();
 
+
 	// Laser
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void Laser(FVector Start, FVector Direction, int32 _ReflectionCount);
+
+	void ResetTrigger();
 
 	TArray<class UParticleSystemComponent*> LaserParticles;
 	TArray<FVector>SourcePoints;
@@ -134,16 +137,18 @@ private:
 	UPROPERTY()
 	class UPhysicsHandleComponent* PhysicsHandle;
 
-	
+	enum class eHitType
+	{
+		NONE,
+		PORTAL,
+		MIRROR,
+		TRIGGER,
+
+		OTHER
+	};
+
+
 public:
-
-	/*void SetTeleportDelay();
-	
-	void SetTeleportable();
-
-	FTimerHandle TeleportDelayTimerHandle;
-
-	bool Teleportable = true;*/
 
 	float DirectionForward;
 	float DirectionRight;
@@ -154,20 +159,5 @@ public:
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class APlatformTrigger> LaserTrigger;
 
-
-
-
-
-
-
-
-	bool IsShowMouse = false;
-
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-		void SwitchMouseCursor();
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-		void ActiveMouseCursor();
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-		void InActiveMouseCursor();
 };
 

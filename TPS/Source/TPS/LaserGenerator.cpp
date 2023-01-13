@@ -50,72 +50,125 @@ void ALaserGenerator::Tick(float DeltaTime)
 
 void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionCount)
 {
-	if (MI_Mirror == nullptr) return;
+	UWorld* World = GetWorld();
 
-	if (P_Laser == nullptr) return;
+	{
+		if (World == nullptr) return;
 
-	auto World = GetWorld();
-	if (World == nullptr) return;
+		if (MI_Mirror == nullptr) return;
+
+		if (P_Laser == nullptr) return;
+	}
 
 	FHitResult HitResult;
 	FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, true, this);
 	bool Result = World->LineTraceSingleByChannel(HitResult, Start, Start + Direction, ECollisionChannel::ECC_GameTraceChannel7, QueryParam);
 
-	/*FColor Color = Result ? FColor::Green : FColor::Red;
-	DrawDebugLine(World, Start, Start + Direction, Color);*/
 
-	if (Result)
+	AActor* HitActor = HitResult.GetActor();
+	eHitType HitType;
+
 	{
+		if (Result == false)
+		{
+			HitType = eHitType::NONE;
+			goto SWITCH;
+		}
+
+		if (Cast<APortal>(HitActor))
+		{
+			HitType = eHitType::PORTAL;
+			goto SET_LASER;
+		}
+
+		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
+		{
+			if (_ReflectionCount == 0) return;
+
+			HitType = eHitType::MIRROR;
+			goto SET_LASER;
+		}
+
+		if (Cast<APlatformTrigger>(HitActor))
+		{
+			HitType = eHitType::TRIGGER;
+			goto SET_LASER;
+		}
+
+		// 추가할거는 여기에 추가
+
+
+		// 무적권 얘는 맨 마지막
+		HitType = eHitType::OTHER;
+		goto SET_LASER;
+	}
+
+SET_LASER:
+	LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
+	SourcePoints.Add(Start);
+	EndPoints.Add(HitResult.ImpactPoint);
+
+SWITCH:
+	switch (HitType)
+	{
+	case eHitType::NONE:
 		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
 		SourcePoints.Add(Start);
-		EndPoints.Add(HitResult.ImpactPoint);
+		EndPoints.Add(Start + Direction);
 
-		auto PlatformTrigger = Cast<APlatformTrigger>(HitResult.GetActor());
-		if (PlatformTrigger && PlatformTrigger->IsLaserTrigger && !LaserTrigger.IsValid())
+		ResetTrigger();
+		break;
+	case eHitType::PORTAL:
+	{
+		APortal* Portal = Cast<APortal>(HitActor);
+		if (Portal->LinkedPortal.IsValid())
+		{
+			FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
+			Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
+
+			FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
+			Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
+
+			Laser(Start, Direction, _ReflectionCount);
+		}
+		break;
+	}
+	case eHitType::MIRROR:
+	{
+		FVector ImpactNormal = HitResult.ImpactNormal;
+
+		Start = HitResult.ImpactPoint;
+		Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
+
+		_ReflectionCount--;
+		Laser(Start, Direction, _ReflectionCount);
+		break;
+	}
+	case eHitType::TRIGGER:
+	{
+		APlatformTrigger* PlatformTrigger = Cast<APlatformTrigger>(HitActor);
+		if (PlatformTrigger->IsLaserTrigger && LaserTrigger.IsValid() == false)
 		{
 			LaserTrigger = PlatformTrigger;
 			LaserTrigger->LaserTriggerOn();
 		}
-		else if (!PlatformTrigger && LaserTrigger.IsValid())
-		{
-			LaserTrigger->LaserTriggerOff();
-			LaserTrigger.Reset();
-		}
-
-		if (!PlatformTrigger)
-		{
-			auto Portal = Cast<APortal>(HitResult.GetActor());
-			if (Portal && Portal->LinkedPortal.IsValid())
-			{
-				FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
-				Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
-
-				FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
-				Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
-
-				Laser(Start, Direction, _ReflectionCount);
-				return;
-			}
-		}
-
-		if (_ReflectionCount == 0) return;
-
-		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
-		{
-			FVector ImpactNormal = HitResult.ImpactNormal;
-
-			Start = HitResult.ImpactPoint;
-			Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
-
-			_ReflectionCount--;
-			Laser(Start, Direction, _ReflectionCount);
-		}
+		break;
 	}
-	else
+	case eHitType::OTHER:
+		ResetTrigger();
+		break;
+	default:
+		
+		break;
+	}
+}
+
+void ALaserGenerator::ResetTrigger()
+{
+	if (LaserTrigger.IsValid())
 	{
-		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
-		SourcePoints.Add(Start);
-		EndPoints.Add(Start + Direction);
+		LaserTrigger->LaserTriggerOff();
+		LaserTrigger.Reset();
 	}
 }
 

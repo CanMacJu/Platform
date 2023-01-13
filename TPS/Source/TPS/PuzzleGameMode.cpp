@@ -63,7 +63,7 @@ void APuzzleGameMode::StartPlay()
 			Board->AddPiece(Piece);
 		}
 	}
-	
+
 	APuzzlePiece* MainPiece = World->SpawnActorDeferred<APuzzlePiece>(BP_PuzzlePieceClass, FTransform());
 	if (MainPiece)
 	{
