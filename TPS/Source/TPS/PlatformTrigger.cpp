@@ -100,9 +100,9 @@ void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedCompon
 	}
 }
 
-void APlatformTrigger::TimelineUpdate(float Value)
+void APlatformTrigger::TimelineUpdate(float value)
 {
-	Switch->SetRelativeLocation(FMath::Lerp(StartSwitchLocation, FinishSwitchLocation, Value));
+	Switch->SetRelativeLocation(FMath::Lerp(StartSwitchLocation, FinishSwitchLocation, value));
 }
 
 void APlatformTrigger::TimelineFinish()
@@ -125,6 +125,7 @@ void APlatformTrigger::LaserTriggerOn()
 	{
 		Switch->SetMaterial(0, M_TriggerOn);
 		SwitchTimeline->Play();
+		bIsLaserTriggerOn = true;
 	}
 
 	for (auto Platform : PlaformsConnectedToTrigger)
@@ -139,6 +140,7 @@ void APlatformTrigger::LaserTriggerOff()
 	{
 		Switch->SetMaterial(0, M_TriggerOff);
 		SwitchTimeline->Reverse();
+		bIsLaserTriggerOn = false;
 	}
 
 	for (auto Platform : PlaformsConnectedToTrigger)

@@ -30,7 +30,7 @@ protected:
 	void OnEndOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
-	void TimelineUpdate(float Value);
+	void TimelineUpdate(float value);
 
 	UFUNCTION()
 	void TimelineFinish();
@@ -79,7 +79,12 @@ private:
 	FOnTimelineFloat UpdateFunction;
 	FOnTimelineEvent FinishFunction;
 
+
+	bool bIsLaserTriggerOn;
+
 public:
+
+	bool GetIsLaserTriggerOn() const { return bIsLaserTriggerOn; };
 
 	void LaserTriggerOn();
 	void LaserTriggerOff();

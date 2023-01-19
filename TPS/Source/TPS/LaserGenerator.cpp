@@ -10,6 +10,7 @@
 #include "TPSCharacter.h"
 #include "Components/ArrowComponent.h"
 #include "PlatformTrigger.h"
+#include "ReflectionCube.h"
 
 // Sets default values
 ALaserGenerator::ALaserGenerator()
@@ -45,6 +46,9 @@ void ALaserGenerator::Tick(float DeltaTime)
 	FVector Start = Muzzle->GetComponentLocation();
 	FVector Direction = Muzzle->GetForwardVector();
 	Laser(Start, Direction * 10000, ReflectionCount);
+
+	CompareReflectionCube();
+	CompareLaserTrigger();
 	DrawLaser();
 }
 
@@ -56,6 +60,8 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionC
 		if (World == nullptr) return;
 
 		if (MI_Mirror == nullptr) return;
+
+		if (MI_Glass == nullptr) return;
 
 		if (P_Laser == nullptr) return;
 	}
@@ -83,15 +89,19 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionC
 
 		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
 		{
-			if (_ReflectionCount == 0) return;
-
 			HitType = eHitType::MIRROR;
 			goto SET_LASER;
 		}
 
-		if (Cast<APlatformTrigger>(HitActor))
+		if (SetLaserTrigger(Cast<APlatformTrigger>(HitActor)))
 		{
 			HitType = eHitType::TRIGGER;
+			goto SET_LASER;
+		}
+
+		if (HitResult.GetComponent()->GetMaterial(0) == MI_Glass && AddReflectionCube(Cast<AReflectionCube>(HitActor)))
+		{
+			HitType = eHitType::REFLECTION_CUBE;
 			goto SET_LASER;
 		}
 
@@ -115,8 +125,6 @@ SWITCH:
 		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
 		SourcePoints.Add(Start);
 		EndPoints.Add(Start + Direction);
-
-		ResetTrigger();
 		break;
 	case eHitType::PORTAL:
 	{
@@ -135,6 +143,8 @@ SWITCH:
 	}
 	case eHitType::MIRROR:
 	{
+		if (_ReflectionCount == 0) return;
+
 		FVector ImpactNormal = HitResult.ImpactNormal;
 
 		Start = HitResult.ImpactPoint;
@@ -145,17 +155,23 @@ SWITCH:
 		break;
 	}
 	case eHitType::TRIGGER:
+		break;
+	case eHitType::REFLECTION_CUBE:
 	{
-		APlatformTrigger* PlatformTrigger = Cast<APlatformTrigger>(HitActor);
-		if (PlatformTrigger->IsLaserTrigger && LaserTrigger.IsValid() == false)
-		{
-			LaserTrigger = PlatformTrigger;
-			LaserTrigger->LaserTriggerOn();
-		}
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
+		SourcePoints.Add(HitResult.ImpactPoint);
+		EndPoints.Add(HitActor->GetActorLocation());
+
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
+		SourcePoints.Add(HitActor->GetActorLocation());
+		EndPoints.Add(HitActor->GetActorLocation() + HitActor->GetActorForwardVector() * 50.f);
+
+		Start = HitActor->GetActorLocation() + HitActor->GetActorForwardVector() * 50.f;
+		Direction = HitActor->GetActorForwardVector() * 10000.f;
+		Laser(Start, Direction, _ReflectionCount);
 		break;
 	}
 	case eHitType::OTHER:
-		ResetTrigger();
 		break;
 	default:
 		
@@ -163,13 +179,23 @@ SWITCH:
 	}
 }
 
-void ALaserGenerator::ResetTrigger()
+bool ALaserGenerator::SetLaserTrigger(APlatformTrigger* laserTrigger)
 {
-	if (LaserTrigger.IsValid())
-	{
-		LaserTrigger->LaserTriggerOff();
-		LaserTrigger.Reset();
-	}
+	if (laserTrigger == nullptr || laserTrigger->IsLaserTrigger == false) return false;
+
+	if (laserTrigger->GetIsLaserTriggerOn() == false)
+		laserTrigger->LaserTriggerOn();
+	CurrentLaserTrigger = laserTrigger;
+	return true;
+}
+
+void ALaserGenerator::CompareLaserTrigger()
+{
+	if (CurrentLaserTrigger != PreviousLaserTrigger && PreviousLaserTrigger.IsValid())
+		PreviousLaserTrigger->LaserTriggerOff();
+
+	PreviousLaserTrigger = CurrentLaserTrigger;
+	CurrentLaserTrigger.Reset();
 }
 
 void ALaserGenerator::DrawLaser()
@@ -193,4 +219,44 @@ void ALaserGenerator::ResetLaser()
 	LaserParticles.Empty();
 	SourcePoints.Empty();
 	EndPoints.Empty();
+}
+
+bool ALaserGenerator::AddReflectionCube(AReflectionCube* reflectionCube)
+{
+	if (reflectionCube == nullptr) return false;
+
+	for (TWeakObjectPtr<AReflectionCube> ReflectionCube : CurrentReflectionCubes)
+	{
+		if (reflectionCube == ReflectionCube)
+			return false;
+	}
+
+	if (reflectionCube->GetIsCoreOn() == false)
+		reflectionCube->CoreOn();
+	CurrentReflectionCubes.Add(reflectionCube);
+	return true;
+}
+
+void ALaserGenerator::CompareReflectionCube()
+{
+	for (TWeakObjectPtr<AReflectionCube> PreviousReflectionCube : PreviousReflectionCubes)
+	{
+		bool IsContinuously = false;
+		for (TWeakObjectPtr<AReflectionCube> CurrentReflectionCube : CurrentReflectionCubes)
+		{
+			if (PreviousReflectionCube == CurrentReflectionCube)
+			{
+				IsContinuously = true;
+				break;
+			}
+		}
+
+		if (IsContinuously == false)
+			PreviousReflectionCube->CoreOff();
+	}
+
+	PreviousReflectionCubes.Empty();
+	for (TWeakObjectPtr<AReflectionCube> CurrentReflectionCube : CurrentReflectionCubes)
+		PreviousReflectionCubes.Add(CurrentReflectionCube);
+	CurrentReflectionCubes.Empty();
 }

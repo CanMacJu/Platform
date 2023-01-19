@@ -52,20 +52,22 @@ std::pair<bool, FTransform> APortalWall::ClampPortalPosition(FVector Location, T
 	if (LinkedPortal.IsValid())
 	{
 		FVector LinkedPortalLocalLocation = GetTransform().InverseTransformPositionNoScale(LinkedPortal->GetActorLocation());
-		bool IsOverlap = CheckOverlapLinkedPortal(ClampLocation, LinkedPortalLocalLocation);
+		bool CanSpawn = CheckOverlapLinkedPortal(ClampLocation, LinkedPortalLocalLocation);
 
 		ClampLocation = GetTransform().TransformPositionNoScale(ClampLocation);
 
 		ClampTransform = FTransform(GetActorRotation(), ClampLocation);
 
-		return std::make_pair(IsOverlap, ClampTransform);
+		return std::make_pair(CanSpawn, ClampTransform);
 	}
-	
-	ClampLocation = GetTransform().TransformPositionNoScale(ClampLocation);
+	else
+	{
+		ClampLocation = GetTransform().TransformPositionNoScale(ClampLocation);
 
-	ClampTransform = FTransform(GetActorRotation(), ClampLocation);
+		ClampTransform = FTransform(GetActorRotation(), ClampLocation);
 
-	return std::make_pair(false, ClampTransform);
+		return std::make_pair(true, ClampTransform);
+	}
 }
 
 bool APortalWall::CheckOverlapLinkedPortal(FVector PositionA, FVector PositionB)
@@ -79,21 +81,21 @@ bool APortalWall::CheckOverlapLinkedPortal(FVector PositionA, FVector PositionB)
 	float B_Z = PositionB.Z;
 
 	if (FMath::Abs(A_X - B_X) > 0.01f)
-		return false;
+		return true;
 
 	const float PortalWidth = 180.f;
 	const float PortalHeight = 249.f;
 
 	if (A_Y + PortalWidth / 2 < B_Y - PortalWidth / 2)
-		return false;
+		return true;
 	if (B_Y + PortalWidth / 2 < A_Y - PortalWidth / 2)
-		return false;
+		return true;
 	if (A_Z + PortalHeight / 2 < B_Z - PortalHeight / 2)
-		return false;
+		return true;
 	if (B_Z + PortalHeight / 2 < A_Z - PortalHeight / 2)
-		return false;
+		return true;
 
-	return true;
+	return false;
 }
 
 // Called every frame

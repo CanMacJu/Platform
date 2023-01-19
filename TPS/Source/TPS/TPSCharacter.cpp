@@ -23,6 +23,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "PlatformTrigger.h"
+#include "ReflectionCube.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -88,6 +89,15 @@ void ATPSCharacter::BeginPlay()
 
 
 	ActiveFPSCamera();
+	InitLerpSetting();
+}
+
+void ATPSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	GetWorld()->GetTimerManager().ClearTimer(CameraFOVLerpTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(GrabLocAndRotTimerHandle);
 }
 
 void ATPSCharacter::Tick(float DeltaTime)
@@ -162,10 +172,10 @@ void ATPSCharacter::SpawnPortalA()
 	if (PortalWall == nullptr) return;
 
 	std::pair<bool, FTransform> ClampResult = PortalWall->ClampPortalPosition(HitResult.Location, PortalB);
-	bool IsOverlap = ClampResult.first;
+	bool CanSpawn = ClampResult.first;
 	FTransform ClampTransform = ClampResult.second;
 
-	if (IsOverlap) return;
+	if (CanSpawn == false) return;
 
 	if (PortalA.IsValid()) PortalA->Destroy();
 
@@ -204,10 +214,10 @@ void ATPSCharacter::SpawnPortalB()
 	if (PortalWall == nullptr) return;
 
 	std::pair<bool, FTransform> ClampResult = PortalWall->ClampPortalPosition(HitResult.Location, PortalA);
-	bool IsOverlap = ClampResult.first;
+	bool CanSpawn = ClampResult.first;
 	FTransform ClampTransform = ClampResult.second;
 
-	if (IsOverlap) return;
+	if (CanSpawn == false) return;
 
 	if (PortalB.IsValid()) PortalB->Destroy();
 
@@ -259,8 +269,6 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCou
 
 		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
 		{
-			if (_ReflectionCount == 0) return;
-
 			HitType = eHitType::MIRROR;
 			goto SET_LASER;
 		}
@@ -311,6 +319,8 @@ SWITCH:
 	}
 	case eHitType::MIRROR:
 	{
+		if (_ReflectionCount == 0) return;
+
 		FVector ImpactNormal = HitResult.ImpactNormal;
 
 		Start = HitResult.ImpactPoint;
@@ -381,24 +391,108 @@ void ATPSCharacter::GrabActor()
 		FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, false, this);
 		bool Result = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_GameTraceChannel6, QueryParam);
 
-		if (Result)
-		{
-			GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
-			GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
-			GrabedComponent = HitResult.GetComponent();
-			GrabedComponent->SetCollisionProfileName("GrabedActor");
-			PhysicsHandle->GrabComponentAtLocationWithRotation(HitResult.GetComponent(), NAME_None, GrabLocation, GrabRotator);
+		if (Result == false) return;
 
-			IsGrab = true;
+		AReflectionCube* ReflectCube = Cast<AReflectionCube>(HitResult.Actor);
+		if (ReflectCube)
+		{
+			GrabedActor = ReflectCube;
+			FVector startLoc = GrabedActor->GetActorLocation();
+			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 150.f - FPSCamera->GetUpVector() * 25.f;
+			FRotator startRot = GrabedActor->GetActorRotation();
+			FRotator endRot = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+			SetGrabLocAndRotTimer(HitResult, startLoc, endLoc, startRot, endRot);
+
+			float startFOV = 90.f;
+			float targetFOV = 95.f;
+			SetCameraFOVTimer(startFOV, targetFOV);
+
+		}
+		else
+		{
+			AActor* HitActor = HitResult.GetActor();
+			FVector startLoc = HitActor->GetActorLocation();
+			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 150.f - FPSCamera->GetUpVector() * 25.f;
+			FRotator startRot = HitActor->GetActorRotation();
+			FRotator endRot = startRot;
+			SetGrabLocAndRotTimer(HitResult, startLoc, endLoc, startRot, endRot);
 		}
 	}
 	else
 	{
+		if (GrabedActor.IsValid())
+		{
+			float startFOV = 95.f;
+			float targetFOV = 90.f;
+			SetCameraFOVTimer(startFOV, targetFOV);
+
+			GrabedActor.Reset();
+		}
+
 		PhysicsHandle->ReleaseComponent();
 		GrabedComponent->SetCollisionProfileName(TEXT("PhysicsActor"));
 		GrabedComponent.Reset();
 		IsGrab = false;
 	}
+}
+
+void ATPSCharacter::InitLerpSetting()
+{
+	LerpTime = 0.15f;
+	IntervalTime = LerpTime / 16;
+}
+
+void ATPSCharacter::SetCameraFOVTimer(float startFOV, float targetFOV)
+{
+	CameraFOVLerpTimerDelegate = FTimerDelegate::CreateUObject(this, &ATPSCharacter::LerpCameraFOV, startFOV, targetFOV);
+	GetWorld()->GetTimerManager().SetTimer(CameraFOVLerpTimerHandle, CameraFOVLerpTimerDelegate, IntervalTime, true);
+}
+
+void ATPSCharacter::LerpCameraFOV(float startFOV, float targetFOV)
+{
+	FOVCurrentTime += IntervalTime;
+	float alpha = FOVCurrentTime / LerpTime;
+	FPSCamera->SetFieldOfView(FMath::Lerp(startFOV, targetFOV, alpha));
+
+	if (FOVCurrentTime >= LerpTime)
+	{
+		FPSCamera->SetFieldOfView(targetFOV);
+		FOVCurrentTime = 0.f;
+		GetWorld()->GetTimerManager().ClearTimer(CameraFOVLerpTimerHandle);
+	}
+}
+
+void ATPSCharacter::SetGrabLocAndRotTimer(FHitResult hitResult, FVector startLoc, FVector endLoc, FRotator startRot, FRotator endRot)
+{
+	GrabLocAndRotTimerDelegate = FTimerDelegate::CreateUObject(this, &ATPSCharacter::LerpGrabLocAndRot, hitResult, startLoc, endLoc, startRot, endRot);
+	GetWorld()->GetTimerManager().SetTimer(GrabLocAndRotTimerHandle, GrabLocAndRotTimerDelegate, IntervalTime, true);
+}
+
+void ATPSCharacter::LerpGrabLocAndRot(FHitResult hitResult, FVector startLoc, FVector endLoc, FRotator startRot, FRotator endRot)
+{
+	GrabCurrentTime += IntervalTime;
+	float alpha = GrabCurrentTime / LerpTime;
+	hitResult.Actor->SetActorLocation(FMath::Lerp(startLoc, endLoc, alpha));
+	hitResult.Actor->SetActorRelativeRotation(FMath::Lerp(startRot, endRot, alpha));
+
+	if (GrabCurrentTime >= LerpTime)
+	{
+		hitResult.Actor->SetActorLocation(endLoc);
+		hitResult.Actor->SetActorRelativeRotation(endRot);
+		GrabCurrentTime = 0.f;
+		GetWorld()->GetTimerManager().ClearTimer(GrabLocAndRotTimerHandle);
+		SetGrabSetting(hitResult);
+	}
+}
+
+void ATPSCharacter::SetGrabSetting(FHitResult hitResult)
+{
+	GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
+	GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+	GrabedComponent = hitResult.GetComponent();
+	GrabedComponent->SetCollisionProfileName("GrabedActor");
+	PhysicsHandle->GrabComponentAtLocationWithRotation(GrabedComponent.Get(), NAME_None, GrabLocation, GrabRotator);
+	IsGrab = true;
 }
 
 void ATPSCharacter::SwitchActiveCamera()

@@ -29,6 +29,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	virtual void Tick(float DeltaTime) override;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -109,12 +111,38 @@ private:
 	class UParticleSystem* P_Laser;
 	
 
+
+
+
 	// GrabActor
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void GrabActor();
 	bool IsGrab = false;
 	FRotator GrabRotator;
 	FVector GrabLocation;
+	TWeakObjectPtr<class AReflectionCube> GrabedActor;
+
+	// CameraFOVLerp
+	void InitLerpSetting();
+	FTimerHandle CameraFOVLerpTimerHandle;
+	FTimerDelegate CameraFOVLerpTimerDelegate;
+	void SetCameraFOVTimer(float startFOV, float targetFOV);
+	void LerpCameraFOV(float startFOV, float targetFOV);
+	float FOVCurrentTime;
+	// GrabLocationRotationLerp
+	FTimerHandle GrabLocAndRotTimerHandle;
+	FTimerDelegate GrabLocAndRotTimerDelegate;
+	void SetGrabLocAndRotTimer(FHitResult hitResult, FVector startLoc, FVector endLoc, FRotator startRot, FRotator endRot);
+	void LerpGrabLocAndRot(FHitResult hitResult, FVector startLoc, FVector endLoc, FRotator startRot, FRotator endRot);
+	float GrabCurrentTime;
+
+	float IntervalTime;
+	float LerpTime;
+
+	void SetGrabSetting(FHitResult hitResult);
+
+
+
 
 	// Camera (ÇÏ³ª¸¸ ¾¸)
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))

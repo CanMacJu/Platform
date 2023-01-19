@@ -37,8 +37,6 @@ private:
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void Laser(FVector Start, FVector Direction, int32 _ReflectionCount);
 
-	void ResetTrigger();
-
 	TArray<class UParticleSystemComponent*> LaserParticles;
 	TArray<FVector>SourcePoints;
 	TArray<FVector>EndPoints;
@@ -50,10 +48,21 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_Mirror;
 	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface* MI_Glass;
+	UPROPERTY(EditDefaultsOnly)
 	class UParticleSystem* P_Laser;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<class APlatformTrigger> LaserTrigger;
+	TWeakObjectPtr<class APlatformTrigger> CurrentLaserTrigger;
+	UPROPERTY(VisibleInstanceOnly)
+	TWeakObjectPtr<class APlatformTrigger> PreviousLaserTrigger;
+	bool SetLaserTrigger(class APlatformTrigger* laserTrigger);
+	void CompareLaserTrigger();
+
+	TArray<TWeakObjectPtr<class AReflectionCube>> CurrentReflectionCubes;
+	TArray<TWeakObjectPtr<class AReflectionCube>> PreviousReflectionCubes;
+	bool AddReflectionCube(class AReflectionCube* reflectionCube);
+	void CompareReflectionCube();
 
 	enum class eHitType
 	{
@@ -61,6 +70,7 @@ private:
 		PORTAL,
 		MIRROR,
 		TRIGGER,
+		REFLECTION_CUBE,
 
 		OTHER
 	};
