@@ -33,7 +33,5 @@ void ABasicPlatform::AddActiveTrigger()
 void ABasicPlatform::RemoveActiveTrigger()
 {
 	if (ActiveTriggers > 0)
-	{
 		ActiveTriggers--;
-	}
 }

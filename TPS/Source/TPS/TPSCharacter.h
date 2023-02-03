@@ -111,6 +111,11 @@ private:
 	class UParticleSystem* P_Laser;
 	
 
+	// Sound
+	UPROPERTY(EditDefaultsOnly)
+		class USoundCue* SC_PortalA;
+	UPROPERTY(EditDefaultsOnly)
+		class USoundCue* SC_PortalB;
 
 
 
@@ -185,7 +190,8 @@ public:
 	TWeakObjectPtr<class UPrimitiveComponent> GrabedComponent;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<class APlatformTrigger> LaserTrigger;
+	TWeakObjectPtr<class ALaserTrigger> LaserTrigger;
+
 
 };
 

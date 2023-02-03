@@ -28,7 +28,7 @@ public:
 
 protected:
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "BasicSetting")
 	int32 ActiveTriggers = 1;
 
 

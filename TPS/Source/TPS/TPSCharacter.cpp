@@ -19,11 +19,12 @@
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
-
+#include "Sound/SoundCue.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "PlatformTrigger.h"
 #include "ReflectionCube.h"
+#include "LaserTrigger.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATPSCharacter
@@ -190,6 +191,10 @@ void ATPSCharacter::SpawnPortalA()
 		Portal->LinkPortal(PortalB);
 		Portal->FinishSpawning(ClampTransform);
 	}
+
+	if (SC_PortalA)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalA, GetActorLocation());
+
 }
 
 void ATPSCharacter::SpawnPortalB()
@@ -232,6 +237,9 @@ void ATPSCharacter::SpawnPortalB()
 		Portal->LinkPortal(PortalA);
 		Portal->FinishSpawning(ClampTransform);
 	}
+
+	if (SC_PortalB)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalB, GetActorLocation());
 }
 
 void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCount)
@@ -273,7 +281,7 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCou
 			goto SET_LASER;
 		}
 
-		if (Cast<APlatformTrigger>(HitActor))
+		if (Cast<ALaserTrigger>(HitActor))
 		{
 			HitType = eHitType::TRIGGER;
 			goto SET_LASER;
@@ -332,8 +340,8 @@ SWITCH:
 	}
 	case eHitType::TRIGGER:
 	{
-		APlatformTrigger* PlatformTrigger = Cast<APlatformTrigger>(HitActor);
-		if (PlatformTrigger->IsLaserTrigger && LaserTrigger.IsValid() == false)
+		ALaserTrigger* PlatformTrigger = Cast<ALaserTrigger>(HitActor);
+		if (LaserTrigger.IsValid() == false)
 		{
 			LaserTrigger = PlatformTrigger;
 			LaserTrigger->LaserTriggerOn();
@@ -412,7 +420,7 @@ void ATPSCharacter::GrabActor()
 		{
 			AActor* HitActor = HitResult.GetActor();
 			FVector startLoc = HitActor->GetActorLocation();
-			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 150.f - FPSCamera->GetUpVector() * 25.f;
+			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 150.f;
 			FRotator startRot = HitActor->GetActorRotation();
 			FRotator endRot = startRot;
 			SetGrabLocAndRotTimer(HitResult, startLoc, endLoc, startRot, endRot);
@@ -438,7 +446,7 @@ void ATPSCharacter::GrabActor()
 
 void ATPSCharacter::InitLerpSetting()
 {
-	LerpTime = 0.15f;
+	LerpTime = 0.10f;
 	IntervalTime = LerpTime / 16;
 }
 

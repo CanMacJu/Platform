@@ -9,7 +9,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "TPSCharacter.h"
 #include "Components/ArrowComponent.h"
-#include "PlatformTrigger.h"
+#include "LaserTrigger.h"
 #include "ReflectionCube.h"
 
 // Sets default values
@@ -93,7 +93,7 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionC
 			goto SET_LASER;
 		}
 
-		if (SetLaserTrigger(Cast<APlatformTrigger>(HitActor)))
+		if (SetLaserTrigger(Cast<ALaserTrigger>(HitActor)))
 		{
 			HitType = eHitType::TRIGGER;
 			goto SET_LASER;
@@ -179,9 +179,9 @@ SWITCH:
 	}
 }
 
-bool ALaserGenerator::SetLaserTrigger(APlatformTrigger* laserTrigger)
+bool ALaserGenerator::SetLaserTrigger(ALaserTrigger* laserTrigger)
 {
-	if (laserTrigger == nullptr || laserTrigger->IsLaserTrigger == false) return false;
+	if (laserTrigger == nullptr) return false;
 
 	if (laserTrigger->GetIsLaserTriggerOn() == false)
 		laserTrigger->LaserTriggerOn();

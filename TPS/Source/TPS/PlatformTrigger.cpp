@@ -5,6 +5,9 @@
 #include "Components/BoxComponent.h"
 #include "MovingPlatform.h"
 #include "Components/TimelineComponent.h"
+#include "PlatformConnectLane.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 APlatformTrigger::APlatformTrigger()
@@ -18,11 +21,26 @@ APlatformTrigger::APlatformTrigger()
 
 	Switch = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
 	Switch->SetupAttachment(RootComponent);
+	Switch->SetRelativeScale3D(FVector(1.f, 1.f, 0.1f));
 
 	Border = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BORDER"));
 	Border->SetupAttachment(RootComponent);
+	Border->SetRelativeLocation(FVector(0.f, 0.f, -10.f));
+	Border->SetRelativeScale3D(FVector(1.2f, 1.2f, 0.1f));
 
 	SwitchTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("TIMELINE"));
+}
+
+void APlatformTrigger::ActiveLane()
+{
+	for (auto Lane : PlatformConnectLanes)
+		Lane->SetTextureOn();
+}
+
+void APlatformTrigger::InActiveLane()
+{
+	for (auto Lane : PlatformConnectLanes)
+		Lane->SetTextureOff();
 }
 
 // Called when the game starts or when spawned
@@ -59,45 +77,46 @@ void APlatformTrigger::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	if (M_TriggerOff)
-	{
-		Switch->SetMaterial(0, M_TriggerOff);
-	}
+	if (MI_TriggerOff)
+		Switch->SetMaterial(0, MI_TriggerOff);
 }
 
 void APlatformTrigger::OnBeginOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	OverlapedActorNum++;
 
-	if (M_TriggerOn && OverlapedActorNum > 0 && SwitchTimeline)
+	if (OverlapedActorNum > 1) return;
+
+	if (MI_TriggerOn && SwitchTimeline)
 	{
-		Switch->SetMaterial(0, M_TriggerOn);
+		Switch->SetMaterial(0, MI_TriggerOn);
 		SwitchTimeline->Play();
+		ActiveLane();
 	}
 
 	for (auto Platform : PlaformsConnectedToTrigger)
-	{
 		Platform->AddActiveTrigger();
-	}
+
+	if (SC_Tick)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_Tick, GetActorLocation());
 }
 
 void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OverlapedActorNum > 0)
-	{ 
 		OverlapedActorNum--;
-	}
 
-	if (M_TriggerOff && OverlapedActorNum == 0 && SwitchTimeline)
+	if (OverlapedActorNum != 0) return;
+
+	if (MI_TriggerOff && SwitchTimeline)
 	{
-		Switch->SetMaterial(0, M_TriggerOff);
+		Switch->SetMaterial(0, MI_TriggerOff);
 		SwitchTimeline->Reverse();
+		InActiveLane();
 	}
 
 	for (auto Platform : PlaformsConnectedToTrigger)
-	{
 		Platform->RemoveActiveTrigger();
-	}
 }
 
 void APlatformTrigger::TimelineUpdate(float value)
@@ -118,34 +137,3 @@ void APlatformTrigger::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
-void APlatformTrigger::LaserTriggerOn()
-{
-	if (M_TriggerOn && SwitchTimeline)
-	{
-		Switch->SetMaterial(0, M_TriggerOn);
-		SwitchTimeline->Play();
-		bIsLaserTriggerOn = true;
-	}
-
-	for (auto Platform : PlaformsConnectedToTrigger)
-	{
-		Platform->AddActiveTrigger();
-	}
-}
-
-void APlatformTrigger::LaserTriggerOff()
-{
-	if (M_TriggerOff && SwitchTimeline)
-	{
-		Switch->SetMaterial(0, M_TriggerOff);
-		SwitchTimeline->Reverse();
-		bIsLaserTriggerOn = false;
-	}
-
-	for (auto Platform : PlaformsConnectedToTrigger)
-	{
-		Platform->RemoveActiveTrigger();
-	}
-}
-

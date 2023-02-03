@@ -11,6 +11,7 @@
 #include "TPSCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 APortal::APortal()
@@ -142,6 +143,9 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
 			float Ydiff = GetTransform().InverseTransformPositionNoScale(Pawn->GetActorLocation()).Y;
 			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 9 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
+
+			if (SC_PortalEnter)
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, LinkedPortal->GetActorLocation());
 		}
 	}
 }

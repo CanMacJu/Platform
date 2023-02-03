@@ -53,10 +53,10 @@ private:
 	class UParticleSystem* P_Laser;
 
 	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<class APlatformTrigger> CurrentLaserTrigger;
+	TWeakObjectPtr<class ALaserTrigger> CurrentLaserTrigger;
 	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<class APlatformTrigger> PreviousLaserTrigger;
-	bool SetLaserTrigger(class APlatformTrigger* laserTrigger);
+	TWeakObjectPtr<class ALaserTrigger> PreviousLaserTrigger;
+	bool SetLaserTrigger(class ALaserTrigger* laserTrigger);
 	void CompareLaserTrigger();
 
 	TArray<TWeakObjectPtr<class AReflectionCube>> CurrentReflectionCubes;

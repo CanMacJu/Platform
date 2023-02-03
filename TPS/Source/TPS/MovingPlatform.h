@@ -30,17 +30,26 @@ public:
 
 private:
 
+	
+
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* Scene;
+
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* Mesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BasicSetting", meta = (AllowPrivateAccess = "true"))
 	float Speed;
 
-	UPROPERTY(EditAnywhere, meta = (MakeEditWidget = "true"));
+	UPROPERTY(EditAnywhere, meta = (MakeEditWidget = "true"), Category = "BasicSetting");
 	FVector TargetLocation;
+
+	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
+	int32 RequiredActiveTrigger = 1;
 
 	FVector GlobalTargetLocation;
 	FVector GlobalStartLocation;
 
 	FVector Direction;
+
 };

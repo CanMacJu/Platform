@@ -2,18 +2,23 @@
 
 
 #include "MovingPlatform.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 AMovingPlatform::AMovingPlatform()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("SCENE"));
+	RootComponent = Scene;
+
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_CUBE(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube_Chamfer.1M_Cube_Chamfer'"));
 	if (SM_CUBE.Succeeded())
-	{
 		Mesh->SetStaticMesh(SM_CUBE.Object);
-	}
-
+	Mesh->SetupAttachment(RootComponent);
+	Mesh->SetRelativeScale3D(FVector(2.f, 2.f, 0.5f));
 	//SetMobility(EComponentMobility::Movable);
 
 	Speed = 100.f;
@@ -29,6 +34,7 @@ void AMovingPlatform::BeginPlay()
 		SetReplicateMovement(true);
 	}
 
+
 	GlobalTargetLocation = GetTransform().TransformPositionNoScale(TargetLocation);
 	GlobalStartLocation = GetActorLocation();
 }
@@ -37,7 +43,7 @@ void AMovingPlatform::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (HasAuthority() && ActiveTriggers > 0)
+	if (HasAuthority() && ActiveTriggers >= RequiredActiveTrigger)
 	{
 		float TargetLength = FVector::Dist(GetActorLocation(), GlobalTargetLocation);
 
@@ -48,9 +54,7 @@ void AMovingPlatform::Tick(float DeltaTime)
 
 		float NextTickTargetLength = FVector::Dist(GetActorLocation(), GlobalTargetLocation);
 		if (TargetLength < NextTickTargetLength)
-		{
 			Swap(GlobalStartLocation, GlobalTargetLocation);
-		}
 	}
 }
 

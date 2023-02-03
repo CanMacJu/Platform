@@ -88,6 +88,9 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class USceneCaptureComponent2D* SceneCapture;
 
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* SC_PortalEnter;
+
 public:
 
 	UPROPERTY(VisibleInstanceOnly)

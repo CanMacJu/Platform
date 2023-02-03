@@ -18,6 +18,11 @@ public:
 	APlatformTrigger();
 
 protected:
+
+	void ActiveLane();
+	void InActiveLane();
+
+protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
@@ -40,7 +45,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
+protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* Border;
@@ -54,15 +59,15 @@ private:
 	FVector FinishSwitchLocation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Material")
-	UMaterialInterface* M_TriggerOn;
+	UMaterialInterface* MI_TriggerOn;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Material")
-	UMaterialInterface* M_TriggerOff;
+	UMaterialInterface* MI_TriggerOff;
 
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* Trigger;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
 	TArray<class ABasicPlatform*> PlaformsConnectedToTrigger;
 
 	UPROPERTY(VisibleAnywhere)
@@ -79,17 +84,9 @@ private:
 	FOnTimelineFloat UpdateFunction;
 	FOnTimelineEvent FinishFunction;
 
-
-	bool bIsLaserTriggerOn;
-
-public:
-
-	bool GetIsLaserTriggerOn() const { return bIsLaserTriggerOn; };
-
-	void LaserTriggerOn();
-	void LaserTriggerOff();
+	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
+	TArray<class APlatformConnectLane*> PlatformConnectLanes;
 
 	UPROPERTY(EditDefaultsOnly)
-	bool IsLaserTrigger;
-
+	class USoundCue* SC_Tick;
 };
