@@ -13,7 +13,7 @@ UCLASS()
 class TPS_API AMovingPlatform : public ABasicPlatform
 {
 	GENERATED_BODY()
-	
+
 public:
 	AMovingPlatform();
 
@@ -30,26 +30,31 @@ public:
 
 private:
 
-	
+	void Init();
+	void NextSetting();
+
+private:
 
 	UPROPERTY(VisibleAnywhere)
-	USceneComponent* Scene;
+		USceneComponent* Scene;
 
 	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* Mesh;
+		UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BasicSetting", meta = (AllowPrivateAccess = "true"))
-	float Speed;
+		float Speed;
 
-	UPROPERTY(EditAnywhere, meta = (MakeEditWidget = "true"), Category = "BasicSetting");
-	FVector TargetLocation;
+	UPROPERTY(EditInstanceOnly, meta = (MakeEditWidget = "true"), Category = "BasicSetting");
+	TArray<FVector> LocalTargetLocations;
+	UPROPERTY(VisibleAnywhere);
+	TArray<FVector> GlobalTargetLocations;
 
 	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
-	int32 RequiredActiveTrigger = 1;
+		int32 RequiredActiveTrigger = 1;
 
-	FVector GlobalTargetLocation;
-	FVector GlobalStartLocation;
-
+	FVector Start;
+	FVector Target;
+	int32 TargetIndex;
+	float DistanceFromStartToTarget;
 	FVector Direction;
-
 };

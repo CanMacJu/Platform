@@ -126,7 +126,6 @@ void APlatformTrigger::TimelineUpdate(float value)
 
 void APlatformTrigger::TimelineFinish()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Finish Timeline"));
 }
 
 

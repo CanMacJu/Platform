@@ -34,9 +34,7 @@ void AMovingPlatform::BeginPlay()
 		SetReplicateMovement(true);
 	}
 
-
-	GlobalTargetLocation = GetTransform().TransformPositionNoScale(TargetLocation);
-	GlobalStartLocation = GetActorLocation();
+	Init();
 }
 
 void AMovingPlatform::Tick(float DeltaTime)
@@ -45,16 +43,16 @@ void AMovingPlatform::Tick(float DeltaTime)
 
 	if (HasAuthority() && ActiveTriggers >= RequiredActiveTrigger)
 	{
-		float TargetLength = FVector::Dist(GetActorLocation(), GlobalTargetLocation);
-
 		FVector Location = GetActorLocation();
-		Direction = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal();
 		Location += Direction * Speed * DeltaTime;
 		SetActorLocation(Location);
 
-		float NextTickTargetLength = FVector::Dist(GetActorLocation(), GlobalTargetLocation);
-		if (TargetLength < NextTickTargetLength)
-			Swap(GlobalStartLocation, GlobalTargetLocation);
+		float DistanceFromStartToCurrent = FVector::Dist(Start, GetActorLocation());
+		if (DistanceFromStartToTarget <= DistanceFromStartToCurrent)
+		{
+			SetActorLocation(Target);
+			NextSetting();
+		}
 	}
 }
 
@@ -68,4 +66,21 @@ void AMovingPlatform::RemoveActiveTrigger()
 {
 	Super::RemoveActiveTrigger();
 
+}
+
+void AMovingPlatform::Init()
+{
+	for (FVector LocalTargetLocation : LocalTargetLocations)
+		GlobalTargetLocations.Add(GetTransform().TransformPositionNoScale(LocalTargetLocation));
+
+	NextSetting();
+}
+
+void AMovingPlatform::NextSetting()
+{
+	Start = GlobalTargetLocations[TargetIndex % LocalTargetLocations.Num()];
+	TargetIndex++;
+	Target = GlobalTargetLocations[TargetIndex % LocalTargetLocations.Num()];
+	DistanceFromStartToTarget = FVector::Dist(Start, Target);
+	Direction = (Target - Start).GetSafeNormal();
 }
