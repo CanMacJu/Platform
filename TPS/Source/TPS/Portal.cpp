@@ -71,6 +71,11 @@ void APortal::BeginPlay()
 
 	PortalBody->OnComponentBeginOverlap.AddDynamic(this, &APortal::OnPortalBeginOverlap);
 	PortalBody->OnComponentEndOverlap.AddDynamic(this, &APortal::OnPortalEndOverlap);
+
+	float rederQuality = 0.6f;
+	FVector2D viewportSize;
+	GetWorld()->GetGameViewport()->GetViewportSize(viewportSize);
+	SceneCapture->TextureTarget->ResizeTarget(viewportSize.X * rederQuality, viewportSize.Y * rederQuality);
 }
 
 void APortal::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -135,14 +140,16 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		}
 		else
 		{
-			FRotator Rotator = LinkedPortal->GetActorRotation() - GetActorRotation();
-			Pawn->AddControllerYawInput((180.f + Rotator.Yaw) * 0.4f);
+			
 
 			FVector RelativeVelocity = Arrow->GetComponentTransform().InverseTransformVector(Pawn->GetMovementComponent()->Velocity);
 			Pawn->GetMovementComponent()->Velocity = LinkedPortal->GetTransform().TransformVector(RelativeVelocity);
 
 			float Ydiff = GetTransform().InverseTransformPositionNoScale(Pawn->GetActorLocation()).Y;
 			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 9 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
+
+			FRotator Rotator = LinkedPortal->GetActorRotation() - GetActorRotation();
+			Pawn->AddControllerYawInput((180.f + Rotator.Yaw) * 0.4f);
 
 			if (SC_PortalEnter)
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, LinkedPortal->GetActorLocation());

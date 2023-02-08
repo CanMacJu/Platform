@@ -31,26 +31,25 @@ public:
 private:
 
 	void Init();
-	void NextSetting();
+	void NextTargetSetting();
 
 private:
 
 	UPROPERTY(VisibleAnywhere)
-		USceneComponent* Scene;
+	USceneComponent* Scene;
 
 	UPROPERTY(VisibleAnywhere)
-		UStaticMeshComponent* Mesh;
+	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BasicSetting", meta = (AllowPrivateAccess = "true"))
-		float Speed;
+	float Speed;
 
 	UPROPERTY(EditInstanceOnly, meta = (MakeEditWidget = "true"), Category = "BasicSetting");
 	TArray<FVector> LocalTargetLocations;
-	UPROPERTY(VisibleAnywhere);
 	TArray<FVector> GlobalTargetLocations;
 
 	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
-		int32 RequiredActiveTrigger = 1;
+	int32 RequiredActiveTrigger = 1;
 
 	FVector Start;
 	FVector Target;

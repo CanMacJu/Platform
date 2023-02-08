@@ -51,7 +51,7 @@ void AMovingPlatform::Tick(float DeltaTime)
 		if (DistanceFromStartToTarget <= DistanceFromStartToCurrent)
 		{
 			SetActorLocation(Target);
-			NextSetting();
+			NextTargetSetting();
 		}
 	}
 }
@@ -73,10 +73,10 @@ void AMovingPlatform::Init()
 	for (FVector LocalTargetLocation : LocalTargetLocations)
 		GlobalTargetLocations.Add(GetTransform().TransformPositionNoScale(LocalTargetLocation));
 
-	NextSetting();
+	NextTargetSetting();
 }
 
-void AMovingPlatform::NextSetting()
+void AMovingPlatform::NextTargetSetting()
 {
 	Start = GlobalTargetLocations[TargetIndex % LocalTargetLocations.Num()];
 	TargetIndex++;

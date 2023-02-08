@@ -406,13 +406,13 @@ void ATPSCharacter::GrabActor()
 		{
 			GrabedActor = ReflectCube;
 			FVector startLoc = GrabedActor->GetActorLocation();
-			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 150.f - FPSCamera->GetUpVector() * 25.f;
+			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 180.f - FPSCamera->GetUpVector() * 10.f;
 			FRotator startRot = GrabedActor->GetActorRotation();
 			FRotator endRot = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 			SetGrabLocAndRotTimer(HitResult, startLoc, endLoc, startRot, endRot);
 
 			float startFOV = 90.f;
-			float targetFOV = 95.f;
+			float targetFOV = 90.f;
 			SetCameraFOVTimer(startFOV, targetFOV);
 
 		}
@@ -420,7 +420,7 @@ void ATPSCharacter::GrabActor()
 		{
 			AActor* HitActor = HitResult.GetActor();
 			FVector startLoc = HitActor->GetActorLocation();
-			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 150.f;
+			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 180.f;
 			FRotator startRot = HitActor->GetActorRotation();
 			FRotator endRot = startRot;
 			SetGrabLocAndRotTimer(HitResult, startLoc, endLoc, startRot, endRot);
@@ -430,7 +430,7 @@ void ATPSCharacter::GrabActor()
 	{
 		if (GrabedActor.IsValid())
 		{
-			float startFOV = 95.f;
+			float startFOV = 90.f;
 			float targetFOV = 90.f;
 			SetCameraFOVTimer(startFOV, targetFOV);
 
