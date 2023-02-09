@@ -41,6 +41,11 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* Mesh;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UParticleSystem* Ptl_Lane;
+
+	TArray<class UParticleSystemComponent*> MovingLaneParticles;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BasicSetting", meta = (AllowPrivateAccess = "true"))
 	float Speed;
 

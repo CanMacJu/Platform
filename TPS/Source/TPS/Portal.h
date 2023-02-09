@@ -45,6 +45,8 @@ public:
 
 	void SetCameraPosition();
 
+	void CheckPlayerTeleport();
+
 	bool PortalA;
 
 private:
@@ -90,6 +92,19 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USoundCue* SC_PortalEnter;
+
+
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<class AActor*> OverlapedActors;
+
+	UPROPERTY(VisibleAnywhere)
+	TWeakObjectPtr<class ATPSCharacter> OverlapedCharacter;
+
+
+
+	UPROPERTY(EditDefaultsOnly)
+	float rederQuality = 1.f;
 
 public:
 

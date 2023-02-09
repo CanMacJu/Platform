@@ -73,11 +73,6 @@ ATPSCharacter::ATPSCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
-	TeleportBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX"));
-	TeleportBox->SetBoxExtent(FVector(1.5f, 1.5f, 60.f));
-	TeleportBox->SetCollisionProfileName("OverlapAll");
-	TeleportBox->SetupAttachment(RootComponent);
-
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("Handle"));
 
 	// Laser
@@ -251,7 +246,7 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCou
 
 		if (MI_Mirror == nullptr) return;
 
-		if (P_Laser == nullptr) return;
+		if (P_Lane == nullptr) return;
 	}
 
 	FHitResult HitResult;
@@ -296,7 +291,7 @@ void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCou
 	}
 
 SET_LASER:
-	LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
+	LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Lane, FPSCamera));
 	SourcePoints.Add(Start);
 	EndPoints.Add(HitResult.ImpactPoint);
 
@@ -304,7 +299,7 @@ SWITCH:
 	switch (HitType)
 	{
 	case eHitType::NONE:
-		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, FPSCamera));
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Lane, FPSCamera));
 		SourcePoints.Add(Start);
 		EndPoints.Add(Start + Direction);
 

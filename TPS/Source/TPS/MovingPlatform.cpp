@@ -5,6 +5,7 @@
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 
 AMovingPlatform::AMovingPlatform()
 {
@@ -72,6 +73,18 @@ void AMovingPlatform::Init()
 {
 	for (FVector LocalTargetLocation : LocalTargetLocations)
 		GlobalTargetLocations.Add(GetTransform().TransformPositionNoScale(LocalTargetLocation));
+
+	if (Ptl_Lane)
+	{
+		for (int32 i = 0; i < GlobalTargetLocations.Num() - 1; ++i)
+		{
+			UParticleSystemComponent* Particle = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Ptl_Lane, GlobalTargetLocations[i]);
+			Particle->SetBeamSourcePoint(0, GlobalTargetLocations[i], 0);
+			Particle->SetBeamEndPoint(0, GlobalTargetLocations[i + 1]);
+			MovingLaneParticles.Add(Particle);
+		}
+	}
+	
 
 	NextTargetSetting();
 }

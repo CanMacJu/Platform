@@ -63,7 +63,7 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionC
 
 		if (MI_Glass == nullptr) return;
 
-		if (P_Laser == nullptr) return;
+		if (Ptl_Laser == nullptr) return;
 	}
 
 	FHitResult HitResult;
@@ -114,7 +114,7 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionC
 	}
 
 SET_LASER:
-	LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
+	LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(Ptl_Laser, Muzzle));
 	SourcePoints.Add(Start);
 	EndPoints.Add(HitResult.ImpactPoint);
 
@@ -122,7 +122,7 @@ SWITCH:
 	switch (HitType)
 	{
 	case eHitType::NONE:
-		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(Ptl_Laser, Muzzle));
 		SourcePoints.Add(Start);
 		EndPoints.Add(Start + Direction);
 		break;
@@ -158,11 +158,11 @@ SWITCH:
 		break;
 	case eHitType::REFLECTION_CUBE:
 	{
-		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(Ptl_Laser, Muzzle));
 		SourcePoints.Add(HitResult.ImpactPoint);
 		EndPoints.Add(HitActor->GetActorLocation());
 
-		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Laser, Muzzle));
+		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(Ptl_Laser, Muzzle));
 		SourcePoints.Add(HitActor->GetActorLocation());
 		EndPoints.Add(HitActor->GetActorLocation() + HitActor->GetActorForwardVector() * 50.f);
 

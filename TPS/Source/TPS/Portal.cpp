@@ -72,7 +72,6 @@ void APortal::BeginPlay()
 	PortalBody->OnComponentBeginOverlap.AddDynamic(this, &APortal::OnPortalBeginOverlap);
 	PortalBody->OnComponentEndOverlap.AddDynamic(this, &APortal::OnPortalEndOverlap);
 
-	float rederQuality = 0.6f;
 	FVector2D viewportSize;
 	GetWorld()->GetGameViewport()->GetViewportSize(viewportSize);
 	SceneCapture->TextureTarget->ResizeTarget(viewportSize.X * rederQuality, viewportSize.Y * rederQuality);
@@ -83,9 +82,7 @@ void APortal::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	if (LinkedPortal.IsValid())
-	{
 		LinkedPortal->ResetPortalMaterial();
-	}
 }
 
 void APortal::LinkPortal(TWeakObjectPtr<APortal> LinkPortal)
@@ -104,25 +101,9 @@ void APortal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	CheckPlayerTeleport();
+
 	SetCameraPosition();
-
-	/*FVector2D CurrentViewportSize;
-	GetWorld()->GetGameViewport()->GetViewportSize(CurrentViewportSize);
-
-	if (PortalA)
-	{
-		if (RenderTargetB)
-		{
-			RenderTargetB->ResizeTarget(CurrentViewportSize.X, CurrentViewportSize.Y);
-		}
-	}
-	else
-	{
-		if (RenderTargetA)
-		{
-			RenderTargetA->ResizeTarget(CurrentViewportSize.X, CurrentViewportSize.Y);
-		}
-	}*/
 }
 
 void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -130,43 +111,42 @@ void APortal::OnPortalBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	if (LinkedPortal.IsValid() == false)
 		return;
 
-	auto Pawn = Cast<ATPSCharacter>(OtherActor);
+	ATPSCharacter* Pawn = Cast<ATPSCharacter>(OtherActor);
 	if (Pawn)
 	{
-		bool CapsuleComponent = TEXT("Pawn") == OtherComp->GetCollisionProfileName();
-		if (CapsuleComponent)
-		{
-			Pawn->GetCapsuleComponent()->SetCollisionProfileName(TEXT("PortalPawn"));
-		}
-		else
-		{
-			
+		OverlapedCharacter = Pawn;
 
-			FVector RelativeVelocity = Arrow->GetComponentTransform().InverseTransformVector(Pawn->GetMovementComponent()->Velocity);
-			Pawn->GetMovementComponent()->Velocity = LinkedPortal->GetTransform().TransformVector(RelativeVelocity);
-
-			float Ydiff = GetTransform().InverseTransformPositionNoScale(Pawn->GetActorLocation()).Y;
-			Pawn->SetActorLocation(LinkedPortal->GetActorLocation() + LinkedPortal->GetActorForwardVector() * 9 + LinkedPortal->GetActorRightVector() * Ydiff * -1.f);
-
-			FRotator Rotator = LinkedPortal->GetActorRotation() - GetActorRotation();
-			Pawn->AddControllerYawInput((180.f + Rotator.Yaw) * 0.4f);
-
-			if (SC_PortalEnter)
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, LinkedPortal->GetActorLocation());
-		}
+		bool bIsCapsuleComponent = FName(TEXT("Pawn")) == OtherComp->GetCollisionProfileName();
+		if (bIsCapsuleComponent)
+			OtherComp->SetCollisionProfileName(TEXT("PortalPawn"));
 	}
+	else
+	{
+		OverlapedActors.AddUnique(OtherActor);
+
+		// 캐릭터 말고 다른 것
+
+	}
+
+	
+	
 }
 
 void APortal::OnPortalEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	auto Pawn = Cast<ATPSCharacter>(OtherActor);
-	if (Pawn && LinkedPortal.IsValid())
+	if (OverlapedCharacter == OtherActor)
 	{
-		bool CapsuleComponent = TEXT("PortalPawn") == OtherComp->GetCollisionProfileName();
-		if (CapsuleComponent)
-		{
-			Pawn->GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
-		}
+		bool bIsCapsuleComponent = FName(TEXT("PortalPawn")) == OtherComp->GetCollisionProfileName();
+		if (bIsCapsuleComponent)
+			OtherComp->SetCollisionProfileName(TEXT("Pawn"));
+
+		OverlapedCharacter.Reset();
+	}
+	else
+	{
+		// 캐릭터 말고 다른 것
+
+		OverlapedActors.Remove(OtherActor);
 	}
 }
 
@@ -175,37 +155,28 @@ void APortal::SetPortalMaterial()
 	if (LinkedPortal.IsValid())
 	{
 		if (PortalA && MI_PortalBodyA)
-		{
 			PortalBody->SetMaterial(0, MI_PortalBodyA);
-		}
 		else if (MI_PortalBodyB)
-		{
 			PortalBody->SetMaterial(0, MI_PortalBodyB);
-		}
 	}
 	else if (MI_PortalBodyDefault)
-	{
 		PortalBody->SetMaterial(0, MI_PortalBodyDefault);
-	}
 }
 
 void APortal::ResetPortalMaterial()
 {
 	if (MI_PortalBodyDefault)
-	{
 		PortalBody->SetMaterial(0, MI_PortalBodyDefault);
-	}
 }
 
 void APortal::SetCameraPosition()
 {
 	if (LinkedPortal.IsValid())
 	{
-		FVector LocalPosition = GetTransform().InverseTransformPosition(Character->FPSCamera->GetComponentLocation());
+		/*FVector LocalPosition = GetTransform().InverseTransformPosition(Character->FPSCamera->GetComponentLocation());
 
 		FVector Position = FVector(-LocalPosition.X, -LocalPosition.Y, LocalPosition.Z);
 		LinkedPortal->SceneCapture->SetRelativeLocation(Position);
-
 
 		FRotator CameraRotator = Character->FPSCamera->GetComponentRotation();
 
@@ -217,7 +188,45 @@ void APortal::SetCameraPosition()
 
 		LinkedPortal->SceneCapture->SetRelativeRotation(Rotator);
 
+		LinkedPortal->SceneCapture->CustomNearClippingPlane = FVector::Dist(GetActorLocation(), Character->FPSCamera->GetComponentLocation());*/
+
+		FVector RelativeCameraLocation = Arrow->GetComponentTransform().InverseTransformPositionNoScale(Character->FPSCamera->GetComponentLocation());
+		LinkedPortal->SceneCapture->SetRelativeLocation(RelativeCameraLocation);
+
+		FRotator CameraRotator = Character->FPSCamera->GetComponentRotation();
+		FQuat Quat = FQuat(CameraRotator);
+		FRotator RelativeCameraRotator = Arrow->GetComponentTransform().InverseTransformRotation(Quat).Rotator();
+		LinkedPortal->SceneCapture->SetRelativeRotation(RelativeCameraRotator);
+
 		LinkedPortal->SceneCapture->CustomNearClippingPlane = FVector::Dist(GetActorLocation(), Character->FPSCamera->GetComponentLocation());
+	}
+}
+
+void APortal::CheckPlayerTeleport()
+{
+	if (OverlapedCharacter.IsValid())
+	{
+		FVector velocity = OverlapedCharacter->GetCharacterMovement()->Velocity;
+		FVector nextTickLocation = velocity * GetWorld()->GetDeltaSeconds() + OverlapedCharacter->GetActorLocation();
+		FVector portalLocation = GetActorLocation();
+
+		float DotOfPortalAndVelocity = FVector::DotProduct(velocity, GetActorForwardVector());
+		float DotOfPortalAndNextTickLocation = FVector::DotProduct(GetActorForwardVector(), nextTickLocation - portalLocation);
+		if (DotOfPortalAndVelocity < 0 && DotOfPortalAndNextTickLocation < 0)
+		{
+			FVector RelativeVelocity = Arrow->GetComponentTransform().InverseTransformVector(velocity);
+			OverlapedCharacter->GetMovementComponent()->Velocity = LinkedPortal->GetTransform().TransformVector(RelativeVelocity);
+
+			FRotator Rot = LinkedPortal->GetActorRotation() - GetActorRotation();
+			OverlapedCharacter->AddControllerYawInput((Rot.Yaw + 180.f) * 0.4f);
+
+			FVector relativeTPLocation = Arrow->GetComponentTransform().InverseTransformPositionNoScale(nextTickLocation);
+			FVector TPLocation = LinkedPortal->GetTransform().TransformPositionNoScale(relativeTPLocation);
+			OverlapedCharacter->SetActorLocation(TPLocation);
+
+			if (SC_PortalEnter)
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, LinkedPortal->GetActorLocation());
+		}
 	}
 }
 

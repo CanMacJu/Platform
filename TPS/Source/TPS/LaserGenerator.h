@@ -50,7 +50,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_Glass;
 	UPROPERTY(EditDefaultsOnly)
-	class UParticleSystem* P_Laser;
+	class UParticleSystem* Ptl_Laser;
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class ALaserTrigger> CurrentLaserTrigger;

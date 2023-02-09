@@ -108,7 +108,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_Mirror;
 	UPROPERTY(EditDefaultsOnly)
-	class UParticleSystem* P_Laser;
+	class UParticleSystem* P_Lane;
 	
 
 	// Sound
@@ -164,8 +164,8 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class APortal> PortalB;
 
-	UPROPERTY(VisibleAnywhere)
-	class UBoxComponent* TeleportBox;
+	/*UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* TeleportBox;*/
 
 	UPROPERTY()
 	class UPhysicsHandleComponent* PhysicsHandle;
