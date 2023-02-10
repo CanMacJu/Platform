@@ -15,19 +15,12 @@
 #include "DrawDebugHelpers.h"
 #include "UObject/UObjectGlobals.h"
 #include "PortalWall.h"
-#include "Components/BoxComponent.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Sound/SoundCue.h"
-#include "Particles/ParticleSystem.h"
-#include "Particles/ParticleSystemComponent.h"
-#include "PlatformTrigger.h"
 #include "ReflectionCube.h"
-#include "LaserTrigger.h"
 
-//////////////////////////////////////////////////////////////////////////
-// ATPSCharacter
 
 ATPSCharacter::ATPSCharacter()
 {

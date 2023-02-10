@@ -91,12 +91,6 @@ private:
 	void SpawnPortalB();
 
 
-	UPROPERTY(EditDefaultsOnly)
-	class UMaterialInterface* MI_Mirror;
-	UPROPERTY(EditDefaultsOnly)
-	class UParticleSystem* P_Lane;
-	
-
 	// Sound
 	UPROPERTY(EditDefaultsOnly)
 	class USoundCue* SC_PortalA;
@@ -104,14 +98,18 @@ private:
 	class USoundCue* SC_PortalB;
 
 
-
 	// GrabActor
+	UPROPERTY()
+	class UPhysicsHandleComponent* PhysicsHandle;
+
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void GrabActor();
 	bool IsGrab = false;
 	FRotator GrabRotator;
 	FVector GrabLocation;
 	TWeakObjectPtr<class AReflectionCube> GrabedActor;
+
+	
 
 	// CameraFOVLerp
 	void InitLerpSetting();
@@ -133,35 +131,17 @@ private:
 	void SetGrabSetting(FHitResult hitResult);
 
 
-
-
-	// Camera (ÇÏ³ª¸¸ ¾¸)
+	// Camera
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void ActiveFPSCamera();
 	bool IsFPS;
+
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class APortal> PortalA;
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class APortal> PortalB;
-
-	/*UPROPERTY(VisibleAnywhere)
-	class UBoxComponent* TeleportBox;*/
-
-	UPROPERTY()
-	class UPhysicsHandleComponent* PhysicsHandle;
-
-	enum class eHitType
-	{
-		NONE,
-		PORTAL,
-		MIRROR,
-		TRIGGER,
-
-		OTHER
-	};
-
 
 public:
 
@@ -170,10 +150,6 @@ public:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TWeakObjectPtr<class UPrimitiveComponent> GrabedComponent;
-
-	UPROPERTY(VisibleInstanceOnly)
-	TWeakObjectPtr<class ALaserTrigger> LaserTrigger;
-
 
 };
 
