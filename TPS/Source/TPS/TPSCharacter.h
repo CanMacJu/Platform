@@ -91,20 +91,6 @@ private:
 	void SpawnPortalB();
 
 
-	// Laser
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	void Laser(FVector Start, FVector Direction, int32 _ReflectionCount);
-
-	void ResetTrigger();
-
-	TArray<class UParticleSystemComponent*> LaserParticles;
-	TArray<FVector>SourcePoints;
-	TArray<FVector>EndPoints;
-	void DrawLaser();
-	void ResetLaser();
-	UPROPERTY(EditDefaultsOnly)
-	int32 ReflectionCount;
-
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_Mirror;
 	UPROPERTY(EditDefaultsOnly)
@@ -113,9 +99,9 @@ private:
 
 	// Sound
 	UPROPERTY(EditDefaultsOnly)
-		class USoundCue* SC_PortalA;
+	class USoundCue* SC_PortalA;
 	UPROPERTY(EditDefaultsOnly)
-		class USoundCue* SC_PortalB;
+	class USoundCue* SC_PortalB;
 
 
 
@@ -151,11 +137,7 @@ private:
 
 	// Camera (ÇÏ³ª¸¸ ¾¸)
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	void SwitchActiveCamera();
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void ActiveFPSCamera();
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	void ActiveTPSCamera();
 	bool IsFPS;
 
 	UPROPERTY(VisibleInstanceOnly)

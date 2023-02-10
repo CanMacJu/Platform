@@ -75,14 +75,11 @@ ATPSCharacter::ATPSCharacter()
 
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("Handle"));
 
-	// Laser
-	ReflectionCount = 5;
 }
 
 void ATPSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
 
 	ActiveFPSCamera();
 	InitLerpSetting();
@@ -106,14 +103,6 @@ void ATPSCharacter::Tick(float DeltaTime)
 		GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
 	}
-
-	// Laser
-	/*ResetLaser();
-
-	FVector Start = FPSCamera->GetComponentLocation();
-	FVector Direction = FPSCamera->GetForwardVector();
-	Laser(Start, Direction * 10000, ReflectionCount);
-	DrawLaser();*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -237,153 +226,6 @@ void ATPSCharacter::SpawnPortalB()
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalB, GetActorLocation());
 }
 
-void ATPSCharacter::Laser(FVector Start, FVector Direction, int32 _ReflectionCount)
-{
-	UWorld* World = GetWorld();
-
-	{
-		if (World == nullptr) return;
-
-		if (MI_Mirror == nullptr) return;
-
-		if (P_Lane == nullptr) return;
-	}
-
-	FHitResult HitResult;
-	FCollisionQueryParams QueryParam = FCollisionQueryParams(NAME_None, true, this);
-	bool Result = World->LineTraceSingleByChannel(HitResult, Start, Start + Direction, ECollisionChannel::ECC_GameTraceChannel7, QueryParam);
-
-
-	AActor* HitActor = HitResult.GetActor();
-	eHitType HitType;
-
-	{
-		if (Result == false)
-		{
-			HitType = eHitType::NONE;
-			goto SWITCH;
-		}
-
-		if (Cast<APortal>(HitActor))
-		{
-			HitType = eHitType::PORTAL;
-			goto SET_LASER;
-		}
-
-		if (HitResult.GetComponent()->GetMaterial(0) == MI_Mirror)
-		{
-			HitType = eHitType::MIRROR;
-			goto SET_LASER;
-		}
-
-		if (Cast<ALaserTrigger>(HitActor))
-		{
-			HitType = eHitType::TRIGGER;
-			goto SET_LASER;
-		}
-
-		// 추가할거는 여기에 추가
-
-
-		// 무적권 얘는 맨 마지막
-		HitType = eHitType::OTHER;
-		goto SET_LASER;
-	}
-
-SET_LASER:
-	LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Lane, FPSCamera));
-	SourcePoints.Add(Start);
-	EndPoints.Add(HitResult.ImpactPoint);
-
-SWITCH:
-	switch (HitType)
-	{
-	case eHitType::NONE:
-		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(P_Lane, FPSCamera));
-		SourcePoints.Add(Start);
-		EndPoints.Add(Start + Direction);
-
-		ResetTrigger();
-		break;
-	case eHitType::PORTAL:
-	{
-		APortal* Portal = Cast<APortal>(HitActor);
-		if (Portal->LinkedPortal.IsValid())
-		{
-			FVector RelativeStartPoint = Portal->Arrow->GetComponentTransform().InverseTransformPosition(HitResult.ImpactPoint);
-			Start = Portal->LinkedPortal->GetTransform().TransformPosition(RelativeStartPoint);
-
-			FVector RelativeDirection = Portal->Arrow->GetComponentTransform().InverseTransformVector(Direction);
-			Direction = Portal->LinkedPortal->GetTransform().TransformVector(RelativeDirection);
-
-			Laser(Start, Direction, _ReflectionCount);
-		}
-		break;
-	}
-	case eHitType::MIRROR:
-	{
-		if (_ReflectionCount == 0) return;
-
-		FVector ImpactNormal = HitResult.ImpactNormal;
-
-		Start = HitResult.ImpactPoint;
-		Direction = 2 * ImpactNormal * FVector::DotProduct(ImpactNormal, -1.f * Direction) + Direction;
-
-		_ReflectionCount--;
-		Laser(Start, Direction, _ReflectionCount);
-		break;
-	}
-	case eHitType::TRIGGER:
-	{
-		ALaserTrigger* PlatformTrigger = Cast<ALaserTrigger>(HitActor);
-		if (LaserTrigger.IsValid() == false)
-		{
-			LaserTrigger = PlatformTrigger;
-			LaserTrigger->LaserTriggerOn();
-		}
-		break;
-	}
-	case eHitType::OTHER:
-		ResetTrigger();
-		break;
-	default:
-		UE_LOG(LogTemp, Warning, TEXT("case 추가해야함"));
-		break;
-	}
-
-}
-
-void ATPSCharacter::ResetTrigger()
-{
-	if (LaserTrigger.IsValid())
-	{
-		LaserTrigger->LaserTriggerOff();
-		LaserTrigger.Reset();
-	}
-}
-
-void ATPSCharacter::DrawLaser()
-{
-	if ((LaserParticles.Num() == SourcePoints.Num() && SourcePoints.Num() == EndPoints.Num()) == false) return;
-
-	for (int32 i = 0; i < LaserParticles.Num(); ++i)
-	{
-		LaserParticles[i]->SetBeamSourcePoint(0, SourcePoints[i], 0);
-		LaserParticles[i]->SetBeamEndPoint(0, EndPoints[i]);
-	}
-}
-
-void ATPSCharacter::ResetLaser()
-{
-	for (auto LaserParticle : LaserParticles)
-	{
-		LaserParticle->DestroyComponent();
-	}
-	LaserParticles.Empty();
-	SourcePoints.Empty();
-	EndPoints.Empty();
-}
-
 void ATPSCharacter::GrabActor()
 {
 	if (IsGrab == false)
@@ -498,11 +340,6 @@ void ATPSCharacter::SetGrabSetting(FHitResult hitResult)
 	IsGrab = true;
 }
 
-void ATPSCharacter::SwitchActiveCamera()
-{
-	IsFPS ? ActiveTPSCamera() : ActiveFPSCamera();
-}
-
 void ATPSCharacter::ActiveFPSCamera()
 {
 	GetMesh()->SetOwnerNoSee(true);
@@ -511,17 +348,6 @@ void ATPSCharacter::ActiveFPSCamera()
 	this->bUseControllerRotationYaw = true;
 	IsFPS = true;
 }
-
-void ATPSCharacter::ActiveTPSCamera()
-{
-	GetMesh()->SetOwnerNoSee(false);
-	FollowCamera->SetActive(true);
-	FPSCamera->SetActive(false);
-	this->bUseControllerRotationYaw = false;
-	IsFPS = false;
-}
-
-
 
 void ATPSCharacter::OnResetVR()
 {

@@ -25,6 +25,8 @@ APlatformConnectLane::APlatformConnectLane()
 	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ARROW"));
 	Arrow->SetupAttachment(RootComponent);
 	Arrow->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+
+	DecalLength = 10.f;
 }
 
 // Called when the game starts or when spawned
@@ -53,5 +55,7 @@ void APlatformConnectLane::OnConstruction(const FTransform& Transform)
 
 	if (MI_Decal)
 		Decal->SetDecalMaterial(MI_Decal);
+
+	Decal->SetRelativeScale3D(FVector(1.f, DecalLength / 200.f, 1.f));
 }
 

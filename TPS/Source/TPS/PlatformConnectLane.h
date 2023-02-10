@@ -51,4 +51,6 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UTexture2D* Texture_Off;
 
+	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
+	float DecalLength;
 };

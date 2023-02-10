@@ -173,23 +173,6 @@ void APortal::SetCameraPosition()
 {
 	if (LinkedPortal.IsValid())
 	{
-		/*FVector LocalPosition = GetTransform().InverseTransformPosition(Character->FPSCamera->GetComponentLocation());
-
-		FVector Position = FVector(-LocalPosition.X, -LocalPosition.Y, LocalPosition.Z);
-		LinkedPortal->SceneCapture->SetRelativeLocation(Position);
-
-		FRotator CameraRotator = Character->FPSCamera->GetComponentRotation();
-
-		FQuat Quat = FQuat(CameraRotator);
-
-		FQuat A = GetTransform().InverseTransformRotation(Quat);
-
-		FRotator Rotator = FRotator(A.Rotator().Pitch, A.Rotator().Yaw - 180.f, 0.f);
-
-		LinkedPortal->SceneCapture->SetRelativeRotation(Rotator);
-
-		LinkedPortal->SceneCapture->CustomNearClippingPlane = FVector::Dist(GetActorLocation(), Character->FPSCamera->GetComponentLocation());*/
-
 		FVector RelativeCameraLocation = Arrow->GetComponentTransform().InverseTransformPositionNoScale(Character->FPSCamera->GetComponentLocation());
 		LinkedPortal->SceneCapture->SetRelativeLocation(RelativeCameraLocation);
 

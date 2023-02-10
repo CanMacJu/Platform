@@ -8,7 +8,7 @@
 APortalWall::APortalWall()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
 	Mesh->SetCollisionProfileName(TEXT("PortalWall"));
@@ -24,6 +24,11 @@ void APortalWall::BeginPlay()
 	Super::BeginPlay();
 	
 
+}
+
+void APortalWall::OnConstruction(const FTransform& Transform)
+{
+	SetActorRelativeScale3D(FVector(1.f, Width / 100.f, Height / 100.f));
 }
 
 std::pair<bool, FTransform> APortalWall::ClampPortalPosition(FVector Location, TWeakObjectPtr<APortal> LinkedPortal)
@@ -97,11 +102,3 @@ bool APortalWall::CheckOverlapLinkedPortal(FVector PositionA, FVector PositionB)
 
 	return false;
 }
-
-// Called every frame
-void APortalWall::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-

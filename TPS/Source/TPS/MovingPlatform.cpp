@@ -85,7 +85,6 @@ void AMovingPlatform::Init()
 		}
 	}
 	
-
 	NextTargetSetting();
 }
 
