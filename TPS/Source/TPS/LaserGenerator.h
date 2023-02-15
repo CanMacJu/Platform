@@ -59,10 +59,10 @@ private:
 	bool SetLaserTrigger(class ALaserTrigger* laserTrigger);
 	void CompareLaserTrigger();
 
-	TArray<TWeakObjectPtr<class AReflectionCube>> CurrentReflectionCubes;
-	TArray<TWeakObjectPtr<class AReflectionCube>> PreviousReflectionCubes;
-	bool AddReflectionCube(class AReflectionCube* reflectionCube);
-	void CompareReflectionCube();
+	TArray<TWeakObjectPtr<class ALaserCube>> CurrentReflectionCubes;
+	TArray<TWeakObjectPtr<class ALaserCube>> PreviousReflectionCubes;
+	bool AddLaserCube(class ALaserCube* reflectionCube);
+	void CompareLaserCube();
 
 	enum class eHitType
 	{
@@ -70,7 +70,7 @@ private:
 		PORTAL,
 		MIRROR,
 		TRIGGER,
-		REFLECTION_CUBE,
+		LASER_CUBE,
 
 		OTHER
 	};

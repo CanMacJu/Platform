@@ -46,6 +46,7 @@ public:
 	void SetCameraPosition();
 
 	void CheckPlayerTeleport();
+	void CheckActorTeleport();
 
 	bool PortalA;
 
@@ -96,7 +97,7 @@ private:
 
 
 	UPROPERTY(VisibleAnywhere)
-	TArray<class AActor*> OverlapedActors;
+	TArray<class AGrabableActor*> OverlapedActors;
 
 	UPROPERTY(VisibleAnywhere)
 	TWeakObjectPtr<class ATPSCharacter> OverlapedCharacter;
@@ -104,7 +105,7 @@ private:
 
 
 	UPROPERTY(EditDefaultsOnly)
-	float rederQuality = 1.f;
+	float renderQuality = 1.f;
 
 public:
 

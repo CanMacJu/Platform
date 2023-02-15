@@ -10,7 +10,7 @@
 #include "TPSCharacter.h"
 #include "Components/ArrowComponent.h"
 #include "LaserTrigger.h"
-#include "ReflectionCube.h"
+#include "LaserCube.h"
 
 // Sets default values
 ALaserGenerator::ALaserGenerator()
@@ -47,7 +47,7 @@ void ALaserGenerator::Tick(float DeltaTime)
 	FVector Direction = Muzzle->GetForwardVector();
 	Laser(Start, Direction * 10000, ReflectionCount);
 
-	CompareReflectionCube();
+	CompareLaserCube();
 	CompareLaserTrigger();
 	DrawLaser();
 }
@@ -99,9 +99,9 @@ void ALaserGenerator::Laser(FVector Start, FVector Direction, int32 _ReflectionC
 			goto SET_LASER;
 		}
 
-		if (HitResult.GetComponent()->GetMaterial(0) == MI_Glass && AddReflectionCube(Cast<AReflectionCube>(HitActor)))
+		if (HitResult.GetComponent()->GetMaterial(0) == MI_Glass && AddLaserCube(Cast<ALaserCube>(HitActor)))
 		{
-			HitType = eHitType::REFLECTION_CUBE;
+			HitType = eHitType::LASER_CUBE;
 			goto SET_LASER;
 		}
 
@@ -156,7 +156,7 @@ SWITCH:
 	}
 	case eHitType::TRIGGER:
 		break;
-	case eHitType::REFLECTION_CUBE:
+	case eHitType::LASER_CUBE:
 	{
 		LaserParticles.Add(UGameplayStatics::SpawnEmitterAttached(Ptl_Laser, Muzzle));
 		SourcePoints.Add(HitResult.ImpactPoint);
@@ -221,11 +221,11 @@ void ALaserGenerator::ResetLaser()
 	EndPoints.Empty();
 }
 
-bool ALaserGenerator::AddReflectionCube(AReflectionCube* reflectionCube)
+bool ALaserGenerator::AddLaserCube(ALaserCube* reflectionCube)
 {
 	if (reflectionCube == nullptr) return false;
 
-	for (TWeakObjectPtr<AReflectionCube> ReflectionCube : CurrentReflectionCubes)
+	for (TWeakObjectPtr<ALaserCube> ReflectionCube : CurrentReflectionCubes)
 	{
 		if (reflectionCube == ReflectionCube)
 			return false;
@@ -237,12 +237,12 @@ bool ALaserGenerator::AddReflectionCube(AReflectionCube* reflectionCube)
 	return true;
 }
 
-void ALaserGenerator::CompareReflectionCube()
+void ALaserGenerator::CompareLaserCube()
 {
-	for (TWeakObjectPtr<AReflectionCube> PreviousReflectionCube : PreviousReflectionCubes)
+	for (TWeakObjectPtr<ALaserCube> PreviousReflectionCube : PreviousReflectionCubes)
 	{
 		bool IsContinuously = false;
-		for (TWeakObjectPtr<AReflectionCube> CurrentReflectionCube : CurrentReflectionCubes)
+		for (TWeakObjectPtr<ALaserCube> CurrentReflectionCube : CurrentReflectionCubes)
 		{
 			if (PreviousReflectionCube == CurrentReflectionCube)
 			{
@@ -256,7 +256,7 @@ void ALaserGenerator::CompareReflectionCube()
 	}
 
 	PreviousReflectionCubes.Empty();
-	for (TWeakObjectPtr<AReflectionCube> CurrentReflectionCube : CurrentReflectionCubes)
+	for (TWeakObjectPtr<ALaserCube> CurrentReflectionCube : CurrentReflectionCubes)
 		PreviousReflectionCubes.Add(CurrentReflectionCube);
 	CurrentReflectionCubes.Empty();
 }

@@ -20,6 +20,8 @@ private:
 
 public:
 
+	ALaserTrigger();
+
 	bool GetIsLaserTriggerOn() const { return bIsLaserTriggerOn; };
 
 	void LaserTriggerOn();

@@ -19,7 +19,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Sound/SoundCue.h"
-#include "ReflectionCube.h"
+#include "LaserCube.h"
 
 
 ATPSCharacter::ATPSCharacter()
@@ -39,13 +39,14 @@ ATPSCharacter::ATPSCharacter()
 
 	// Configure character movement
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, -1.0f, 0.0f); // ...at this rotation rate
-	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 1.f;
+	GetCharacterMovement()->JumpZVelocity = 550.f;
+	GetCharacterMovement()->AirControl = 0.15f;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->MaxAcceleration = 10000.f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	GetCharacterMovement()->FallingLateralFriction = 1000.f;
-	GetCharacterMovement()->BrakingDecelerationFalling = 2000.f;
+	GetCharacterMovement()->FallingLateralFriction = 0.2f;
+	GetCharacterMovement()->BrakingDecelerationFalling = 10.f;
+	GetCharacterMovement()->GravityScale = 2.0f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -92,6 +93,13 @@ void ATPSCharacter::Tick(float DeltaTime)
 
 	if (IsGrab)
 	{
+		FVector GrabedActorLocation = GrabedComponent->GetComponentLocation();
+		FVector CharactrLocation = GetActorLocation();
+		float Dist = FVector::Dist(GrabedActorLocation, CharactrLocation);
+		if (Dist > 200)
+			GrabActor();
+
+
 		GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 		GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 		PhysicsHandle->SetTargetLocationAndRotation(GrabLocation, GrabRotator);
@@ -231,20 +239,14 @@ void ATPSCharacter::GrabActor()
 
 		if (Result == false) return;
 
-		AReflectionCube* ReflectCube = Cast<AReflectionCube>(HitResult.Actor);
+		ALaserCube* ReflectCube = Cast<ALaserCube>(HitResult.Actor);
 		if (ReflectCube)
 		{
-			GrabedActor = ReflectCube;
-			FVector startLoc = GrabedActor->GetActorLocation();
+			FVector startLoc = ReflectCube->GetActorLocation();
 			FVector endLoc = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 180.f - FPSCamera->GetUpVector() * 10.f;
-			FRotator startRot = GrabedActor->GetActorRotation();
+			FRotator startRot = ReflectCube->GetActorRotation();
 			FRotator endRot = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 			SetGrabLocAndRotTimer(HitResult, startLoc, endLoc, startRot, endRot);
-
-			float startFOV = 90.f;
-			float targetFOV = 90.f;
-			SetCameraFOVTimer(startFOV, targetFOV);
-
 		}
 		else
 		{
@@ -258,17 +260,7 @@ void ATPSCharacter::GrabActor()
 	}
 	else
 	{
-		if (GrabedActor.IsValid())
-		{
-			float startFOV = 90.f;
-			float targetFOV = 90.f;
-			SetCameraFOVTimer(startFOV, targetFOV);
-
-			GrabedActor.Reset();
-		}
-
 		PhysicsHandle->ReleaseComponent();
-		GrabedComponent->SetCollisionProfileName(TEXT("PhysicsActor"));
 		GrabedComponent.Reset();
 		IsGrab = false;
 	}
@@ -328,7 +320,6 @@ void ATPSCharacter::SetGrabSetting(FHitResult hitResult)
 	GrabLocation = FPSCamera->GetComponentLocation() + FPSCamera->GetForwardVector() * 130.f;
 	GrabRotator = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 	GrabedComponent = hitResult.GetComponent();
-	GrabedComponent->SetCollisionProfileName("GrabedActor");
 	PhysicsHandle->GrabComponentAtLocationWithRotation(GrabedComponent.Get(), NAME_None, GrabLocation, GrabRotator);
 	IsGrab = true;
 }

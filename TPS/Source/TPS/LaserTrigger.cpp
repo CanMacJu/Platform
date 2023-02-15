@@ -5,6 +5,12 @@
 #include "BasicPlatform.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Components/BoxComponent.h"
+
+ALaserTrigger::ALaserTrigger()
+{
+	Trigger->SetCollisionProfileName(FName(TEXT("LaserTrigger")));
+}
 
 void ALaserTrigger::LaserTriggerOn()
 {

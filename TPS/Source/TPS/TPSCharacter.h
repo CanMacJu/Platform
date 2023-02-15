@@ -107,7 +107,6 @@ private:
 	bool IsGrab = false;
 	FRotator GrabRotator;
 	FVector GrabLocation;
-	TWeakObjectPtr<class AReflectionCube> GrabedActor;
 
 	
 
