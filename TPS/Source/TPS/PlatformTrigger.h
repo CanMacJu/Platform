@@ -88,5 +88,8 @@ protected:
 	TArray<class APlatformConnectLane*> PlatformConnectLanes;
 
 	UPROPERTY(EditDefaultsOnly)
-	class USoundCue* SC_Tick;
+	class USoundCue* SC_On;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* SC_Off;
 };

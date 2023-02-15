@@ -37,12 +37,12 @@ void AMirrorCube::SetPortalMesh()
 {
 	if (Portal.IsValid())
 	{
-		FVector MeshLocation = GetActorLocation();
-		FVector RelativeLocation = Portal->Arrow->GetComponentTransform().InverseTransformPositionNoScale(MeshLocation);
+		FVector RootLocation = GetActorLocation();
+		FVector RelativeLocation = Portal->Arrow->GetComponentTransform().InverseTransformPositionNoScale(RootLocation);
 		FVector GlobalLocation = Portal->LinkedPortal->GetTransform().TransformPositionNoScale(RelativeLocation);
 
-		FQuat MeshQuat = FQuat(GetActorRotation());
-		FQuat RelativeQuat = Portal->Arrow->GetComponentTransform().InverseTransformRotation(MeshQuat);
+		FQuat RootQuat = FQuat(GetActorRotation());
+		FQuat RelativeQuat = Portal->Arrow->GetComponentTransform().InverseTransformRotation(RootQuat);
 		FQuat GlobalQuat = Portal->LinkedPortal->GetTransform().TransformRotation(RelativeQuat);
 		FRotator GlobalRotator = GlobalQuat.Rotator();
 

@@ -97,8 +97,8 @@ void APlatformTrigger::OnBeginOverlapTrigger(UPrimitiveComponent* OverlappedComp
 	for (auto Platform : PlaformsConnectedToTrigger)
 		Platform->AddActiveTrigger();
 
-	if (SC_Tick)
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_Tick, GetActorLocation());
+	if (SC_On)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_On, GetActorLocation());
 }
 
 void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -117,6 +117,9 @@ void APlatformTrigger::OnEndOverlapTrigger(UPrimitiveComponent* OverlappedCompon
 
 	for (auto Platform : PlaformsConnectedToTrigger)
 		Platform->RemoveActiveTrigger();
+
+	if (SC_Off)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_Off, GetActorLocation());
 }
 
 void APlatformTrigger::TimelineUpdate(float value)

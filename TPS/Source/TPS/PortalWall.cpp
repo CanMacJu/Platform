@@ -40,7 +40,7 @@ std::pair<bool, FTransform> APortalWall::ClampPortalPosition(FVector Location, T
 	const float PortalWidth = 180.f;
 	const float PortalHeight = 249.f;
 
-	ClampLocation.X = 5.f;
+	ClampLocation.X = 1.f;
 	ClampLocation.Y = FMath::Clamp(FMath::Abs(LocalLocation.Y), 0.f, Width / 2 - PortalWidth / 2);
 	ClampLocation.Z = FMath::Clamp(FMath::Abs(LocalLocation.Z), 0.f, Height / 2 - PortalHeight / 2);
 	

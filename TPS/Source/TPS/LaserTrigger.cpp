@@ -26,8 +26,8 @@ void ALaserTrigger::LaserTriggerOn()
 	for (ABasicPlatform* Platform : PlaformsConnectedToTrigger)
 		Platform->AddActiveTrigger();
 
-	if (SC_Tick)
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_Tick, GetActorLocation());
+	if (SC_On)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_On, GetActorLocation());
 }
 
 void ALaserTrigger::LaserTriggerOff()
@@ -43,4 +43,7 @@ void ALaserTrigger::LaserTriggerOff()
 
 	for (ABasicPlatform* Platform : PlaformsConnectedToTrigger)
 		Platform->RemoveActiveTrigger();
+
+	if (SC_Off)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_Off, GetActorLocation());
 }
