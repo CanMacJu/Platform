@@ -4,6 +4,7 @@
 #include "Portal.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -13,6 +14,7 @@
 #include "Components/ArrowComponent.h"
 #include "Sound/SoundCue.h"
 #include "GrabableActor.h"
+#include "MirrorCube.h"
 
 // Sets default values
 APortal::APortal()
@@ -31,6 +33,11 @@ APortal::APortal()
 	PortalBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PORTAL BODY"));
 	PortalBody->SetCollisionProfileName(TEXT("Portal"));
 	PortalBody->SetupAttachment(PortalBorder);
+
+	PortalPlane = CreateDefaultSubobject<UBoxComponent>(TEXT("PORTAL PLANE"));
+	PortalPlane->SetBoxExtent(FVector(1.f, 90.f, 124.5f));
+	PortalPlane->SetCollisionProfileName(TEXT("PortalPlane"));
+	PortalPlane->SetupAttachment(RootComponent);
 
 	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SCENE CAPTURE"));
 	SceneCapture->SetupAttachment(RootComponent);
@@ -72,6 +79,9 @@ void APortal::BeginPlay()
 
 	PortalBody->OnComponentBeginOverlap.AddDynamic(this, &APortal::OnPortalBeginOverlap);
 	PortalBody->OnComponentEndOverlap.AddDynamic(this, &APortal::OnPortalEndOverlap);
+
+	PortalPlane->OnComponentBeginOverlap.AddDynamic(this, &APortal::OnPlaneBeginOverlap);
+	PortalPlane->OnComponentEndOverlap.AddDynamic(this, &APortal::OnPlaneEndOverlap);
 
 	FVector2D viewportSize;
 	GetWorld()->GetGameViewport()->GetViewportSize(viewportSize);
@@ -155,6 +165,23 @@ void APortal::OnPortalEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	}
 }
 
+void APortal::OnPlaneBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (LinkedPortal.IsValid() == false)
+		return;
+
+	AMirrorCube* MirrorCube = Cast<AMirrorCube>(OtherActor);
+	if (MirrorCube)
+		MirrorCube->SetPortal(this);
+}
+
+void APortal::OnPlaneEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AMirrorCube* MirrorCube = Cast<AMirrorCube>(OtherActor);
+	if (MirrorCube)
+		MirrorCube->ResetPortal();
+}
+
 void APortal::SetPortalMaterial()
 {
 	if (LinkedPortal.IsValid())
@@ -186,7 +213,7 @@ void APortal::SetCameraPosition()
 		FRotator RelativeCameraRotator = Arrow->GetComponentTransform().InverseTransformRotation(Quat).Rotator();
 		LinkedPortal->SceneCapture->SetRelativeRotation(RelativeCameraRotator);
 
-		LinkedPortal->SceneCapture->CustomNearClippingPlane = FVector::Dist(GetActorLocation(), Character->FPSCamera->GetComponentLocation());
+		LinkedPortal->SceneCapture->CustomNearClippingPlane = FVector::Dist(GetActorLocation(), Character->FPSCamera->GetComponentLocation()) - 20.f;
 	}
 }
 
@@ -198,9 +225,7 @@ void APortal::CheckPlayerTeleport()
 		FVector nextTickLocation = velocity * GetWorld()->GetDeltaSeconds() + OverlapedCharacter->GetActorLocation();
 		FVector portalLocation = GetActorLocation();
 
-		//float DotOfPortalAndVelocity = FVector::DotProduct(velocity, GetActorForwardVector());
 		float DotOfPortalAndNextTickLocation = FVector::DotProduct(GetActorForwardVector(), nextTickLocation - portalLocation);
-		//if (DotOfPortalAndVelocity < 0 && DotOfPortalAndNextTickLocation < 0)
 		if (DotOfPortalAndNextTickLocation < 0)
 		{
 			FVector RelativeVelocity = Arrow->GetComponentTransform().InverseTransformVector(velocity);
@@ -214,10 +239,7 @@ void APortal::CheckPlayerTeleport()
 			OverlapedCharacter->SetActorLocation(TPLocation);
 
 			if (SC_PortalEnter)
-			{
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, LinkedPortal->GetActorLocation());
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, GetActorLocation());
-			}
 		}
 	}
 }
@@ -233,14 +255,13 @@ void APortal::CheckActorTeleport()
 		float DotOfPortalAndNextTickLocation = FVector::DotProduct(GetActorForwardVector(), nextTickLocation - portalLocation);
 		if (DotOfPortalAndNextTickLocation < 0)
 		{
-			if (SC_PortalEnter)
-			{
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, LinkedPortal->GetActorLocation());
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), SC_PortalEnter, GetActorLocation());
-			}
-
 			FVector RelativeVelocity = Arrow->GetComponentTransform().InverseTransformVectorNoScale(velocity);
 			velocity = LinkedPortal->GetTransform().TransformVectorNoScale(RelativeVelocity);
+			if (velocity.Size() < 300)
+			{
+				velocity = velocity.GetSafeNormal();
+				velocity *= 300.f;
+			}
 			OverlapedActor->SetVelocity(velocity);
 
 			FRotator OverlapedActorRot = OverlapedActor->GetActorRotation();

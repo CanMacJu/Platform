@@ -268,7 +268,7 @@ void ATPSCharacter::GrabActor()
 
 void ATPSCharacter::InitLerpSetting()
 {
-	LerpTime = 0.10f;
+	LerpTime = 0.05f;
 	IntervalTime = LerpTime / 16;
 }
 

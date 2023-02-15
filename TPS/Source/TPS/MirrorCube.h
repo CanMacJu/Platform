@@ -20,8 +20,19 @@ public:
 
 	virtual void SetVelocity(FVector velocity) override;
 	
+	virtual void Tick(float DeltaTime) override;
+
+	void SetPortalMesh();
+	void SetPortal(class APortal* portal);
+	void ResetPortal();
+
 private:
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* Mesh;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* PortalMesh;
+
+	TWeakObjectPtr<class APortal> Portal;
 };
