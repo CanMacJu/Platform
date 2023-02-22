@@ -21,6 +21,8 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	virtual void BeginPlay() override;
+
 public:
 
 	virtual void AddActiveTrigger() override;
@@ -47,4 +49,6 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UMaterialInterface* MI_DoorOpen;
 
+	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
+	bool mbIsAlwaysOpen;
 };

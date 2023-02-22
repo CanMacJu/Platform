@@ -15,6 +15,7 @@
 #include "Sound/SoundCue.h"
 #include "GrabableActor.h"
 #include "MirrorCube.h"
+#include "PortalGameInstance.h"
 
 // Sets default values
 APortal::APortal()
@@ -83,9 +84,14 @@ void APortal::BeginPlay()
 	PortalPlane->OnComponentBeginOverlap.AddDynamic(this, &APortal::OnPlaneBeginOverlap);
 	PortalPlane->OnComponentEndOverlap.AddDynamic(this, &APortal::OnPlaneEndOverlap);
 
-	FVector2D viewportSize;
-	GetWorld()->GetGameViewport()->GetViewportSize(viewportSize);
-	SceneCapture->TextureTarget->ResizeTarget(viewportSize.X * renderQuality, viewportSize.Y * renderQuality);
+	GameInstance = Cast<UPortalGameInstance>(GetGameInstance());
+	if (GameInstance)
+		PortalQualityDelegateHandle = GameInstance->OnChangePortalQualityDelegate.AddUObject(this, &APortal::OnChangePortalQulity);
+
+	if (GameInstance)
+		OnChangePortalQulity(GameInstance->GetPortalQuality());
+	else
+		OnChangePortalQulity(0.4f);
 }
 
 void APortal::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -94,6 +100,8 @@ void APortal::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	if (LinkedPortal.IsValid())
 		LinkedPortal->ResetPortalMaterial();
+
+	GameInstance->OnChangePortalQualityDelegate.Remove(PortalQualityDelegateHandle);
 }
 
 void APortal::LinkPortal(TWeakObjectPtr<APortal> LinkPortal)
@@ -182,6 +190,13 @@ void APortal::OnPlaneEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 		MirrorCube->ResetPortal();
 }
 
+void APortal::OnChangePortalQulity(float quality)
+{
+	FVector2D viewportSize;
+	GetWorld()->GetGameViewport()->GetViewportSize(viewportSize);
+	SceneCapture->TextureTarget->ResizeTarget(viewportSize.X * quality, viewportSize.Y * quality);
+}
+
 void APortal::SetPortalMaterial()
 {
 	if (LinkedPortal.IsValid())
@@ -229,6 +244,11 @@ void APortal::CheckPlayerTeleport()
 		if (DotOfPortalAndNextTickLocation < 0)
 		{
 			FVector RelativeVelocity = Arrow->GetComponentTransform().InverseTransformVector(velocity);
+			if (RelativeVelocity.Size() < 300)
+			{
+				RelativeVelocity = RelativeVelocity.GetSafeNormal();
+				RelativeVelocity *= 500.f;
+			}
 			OverlapedCharacter->GetMovementComponent()->Velocity = LinkedPortal->GetTransform().TransformVector(RelativeVelocity);
 
 			FRotator Rot = LinkedPortal->GetActorRotation() - GetActorRotation();

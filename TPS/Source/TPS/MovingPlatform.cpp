@@ -74,7 +74,7 @@ void AMovingPlatform::Init()
 	for (FVector LocalTargetLocation : LocalTargetLocations)
 		GlobalTargetLocations.Add(GetTransform().TransformPositionNoScale(LocalTargetLocation));
 
-	if (Ptl_Lane)
+	if (mbDrawLane && Ptl_Lane)
 	{
 		for (int32 i = 0; i < GlobalTargetLocations.Num() - 1; ++i)
 		{
@@ -84,7 +84,7 @@ void AMovingPlatform::Init()
 			MovingLaneParticles.Add(Particle);
 		}
 	}
-	
+
 	NextTargetSetting();
 }
 

@@ -56,6 +56,9 @@ private:
 	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
 	int32 RequiredActiveTrigger = 1;
 
+	UPROPERTY(EditInstanceOnly, Category = "BasicSetting")
+	bool mbDrawLane = true;
+
 	FVector Start;
 	FVector Target;
 	int32 TargetIndex;

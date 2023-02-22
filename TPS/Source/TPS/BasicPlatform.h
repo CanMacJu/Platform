@@ -23,6 +23,7 @@ protected:
 
 public:	
 
+	UFUNCTION(BlueprintCallable)
 	virtual void AddActiveTrigger();
 	virtual void RemoveActiveTrigger();
 

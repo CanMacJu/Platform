@@ -43,6 +43,8 @@ private:
 	UFUNCTION()
 	void OnPlaneEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION()
+	void OnChangePortalQulity(float quality);
 
 	void SetPortalMaterial();
 
@@ -113,9 +115,10 @@ private:
 	TWeakObjectPtr<class ATPSCharacter> OverlapedCharacter;
 
 
+	UPROPERTY()
+	class UPortalGameInstance* GameInstance;
 
-	UPROPERTY(EditDefaultsOnly)
-	float renderQuality = 1.f;
+	FDelegateHandle PortalQualityDelegateHandle;
 
 public:
 

@@ -27,6 +27,14 @@ void ADoorPlatform::OnConstruction(const FTransform& Transform)
 	}
 }
 
+void ADoorPlatform::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (mbIsAlwaysOpen)
+		AddActiveTrigger();
+}
+
 void ADoorPlatform::AddActiveTrigger()
 {
 	Super::AddActiveTrigger();
